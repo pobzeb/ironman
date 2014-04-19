@@ -3,8 +3,10 @@ ironman
 
 Real-life Ironman hud for Android and Google Glass or JetRecon display.
 
-Google Glass: http://www.google.com/glass/start/
-JetRecon: http://www.reconinstruments.com/products/jet/
+<pre>
+Google Glass: <a href="http://www.google.com/glass/start/" target="_blank">More Info Here</a>
+JetRecon: <a href="http://www.reconinstruments.com/products/jet/" target="_blank">More Info Here</a>
+</pre>
 
 The idea behind this project is to build a heads up display system similar to the one in the Ironman movies.
 
