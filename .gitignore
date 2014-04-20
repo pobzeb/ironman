@@ -8,6 +8,10 @@
 # Java class files
 *.class
 
+# OS files
+[Tt]humbs.db
+*.DS_Store
+
 # Generated files
 bin/
 gen/
