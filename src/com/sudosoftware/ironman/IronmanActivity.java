@@ -11,7 +11,6 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import com.sudosoftware.ironman.elements.Clock;
@@ -60,9 +59,7 @@ public class IronmanActivity extends Activity {
 			setRenderer(this.renderer);
 
 			// Add the HUD elements.
-			this.renderer.addHudElement(new Clock());
-
-			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+			this.renderer.addHudElement(new Clock(300, 600, 0.5f));
 		}
 
 		@Override
@@ -131,31 +128,26 @@ public class IronmanActivity extends Activity {
 
 			// Set the viewport.
 			gl.glViewport(0, 0, this.screenWidth, this.screenHeight);
-			Log.i(this.getClass().getName(), "Screen: " + this.screenWidth + "x" + this.screenHeight);
 
 			// Load the projection matrix.
 			gl.glMatrixMode(GL10.GL_PROJECTION);
 			gl.glLoadIdentity();
 
 			// Load ortho view.
-			GLU.gluOrtho2D(gl, 0.0f, this.screenWidth, this.screenHeight, 0.0f);
+			GLU.gluOrtho2D(gl, -(this.screenWidth / 2.0f), this.screenWidth / 2.0f, -(this.screenHeight / 2.0f), this.screenHeight / 2.0f);
 
 			// Set the model view matrix mode.
 			gl.glMatrixMode(GL10.GL_MODELVIEW);
 			gl.glLoadIdentity();
 
-			gl.glEnable(GL10.GL_LINE_SMOOTH);
-
 			// Rotate the view.
-			gl.glRotatef(angle, 0.0f, 0.0f, 1.0f);
+//			gl.glRotatef(angle, 0.0f, 0.0f, 1.0f);
 
 			// Draw the HUD elements.
 			for (HUDElement element : this.hudElements) {
 				element.update();
 				element.render(gl);
 			}
-
-			gl.glDisable(GL10.GL_LINE_SMOOTH);
 		}
 
 		@Override

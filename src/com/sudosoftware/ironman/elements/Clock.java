@@ -5,53 +5,64 @@ import java.util.Calendar;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.util.Log;
-
-import com.sudosoftware.ironman.Point3D;
-import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
-import com.sudosoftware.ironman.shapes.Triangle;
 
 public class Clock extends HUDElement {
 	private Calendar datetime;
-	private SimpleDateFormat dateFormatter = new SimpleDateFormat("MM-dd-yyyy");
-	private SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
+	private final SimpleDateFormat dateFormatter = new SimpleDateFormat("MM-dd-yyyy");
+	private final SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
+
+	public float scale;
 
 	public Clock() {
-		datetime = Calendar.getInstance();
+		this(0, 0, 1.0f);
+	}
+
+	public Clock(int x, int y, float scale) {
+		this.x = x;
+		this.y = y;
+		this.scale = scale;
+		this.datetime = Calendar.getInstance();
 	}
 
 	public void update() {
+		this.datetime = Calendar.getInstance();
 	}
 
 	public void render(GL10 gl) {
-		Log.i(this.getClass().getName(), "Date: " + dateFormatter.format(datetime.getTime()));
-		Log.i(this.getClass().getName(), "Time: " + timeFormatter.format(datetime.getTime()));
 		gl.glPushMatrix();
-		gl.glTranslatef(0, 0, 0);
-		gl.glColor4f(1.0f, 0.5f, 0.5f, 1.0f);
-		gl.glLineWidth(10.0f);
-		gl.glPointSize(10.0f);
-		Triangle.drawTriangle(gl, 200.0f, 200.0f, 200.0f, 200.0f, GL10.GL_TRIANGLES);
-		Circle.drawCircle(gl, 10.0f, 10.0f, 5.0f, 300, GL10.GL_LINE_LOOP);
-		Circle.drawArc(gl, 20.0f, 20.0f, 5.0f, 0.0f, 45.0f, 30, GL10.GL_LINE_STRIP);
-		BezierCurve.draw3PointCurve(gl,
-				new Point3D( 100.0f, 300.0f, 0.0f),
-				new Point3D( 100.0f, 100.0f, 0.0f),
-				new Point3D( 300.0f, 100.0f, 0.0f),
-				1000, GL10.GL_POINTS);
-		gl.glColor4f(0.5f, 1.0f, 1.0f, 1.0f);
-		BezierCurve.draw4PointCurve(gl,
-				new Point3D( 500.0f,  200.0f, 0.0f),
-				new Point3D( 200.0f,  100.0f, 0.0f),
-				new Point3D(-100.0f,  100.0f, 0.0f),
-				new Point3D( 500.0f,  200.0f, 0.0f),
-				1000, GL10.GL_POINTS);
-		gl.glColor4f(0.5f, 0.0f, 1.0f, 1.0f);
-		BezierCurve.draw2PointCurve(gl,
-				new Point3D(200.0f, 200.0f, 0.0f),
-				new Point3D(200.0f, 800.0f, 0.0f),
-				100, GL10.GL_LINE_STRIP);
+
+		// Move to the clock's location.
+		gl.glTranslatef(this.x, this.y, 0.0f);
+
+		// Rotate the clock so that zero degrees is pointing up.
+		gl.glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+
+		// Flip the clock so that it winds clock-wise.
+		gl.glScalef(scale, -scale, 1.0f);
+
+		// Draw the clock hands from the outer circle to the inner (seconds, then minutes, then hours).
+		gl.glColor4f(0.97f, 0.97f, 0.97f, 0.125f);
+		Circle.drawCircle(gl, this.x, this.y, 200.0f, 200, GL10.GL_TRIANGLE_FAN);
+		gl.glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+		Circle.drawArc(gl, this.x, this.y, 200.0f, 0.0f, (float)(datetime.get(Calendar.SECOND) * 360.0f) / 60.0f, 200, GL10.GL_TRIANGLE_FAN);
+		gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		Circle.drawCircle(gl, this.x, this.y, 192.0f, 200, GL10.GL_TRIANGLE_FAN);
+
+		gl.glColor4f(0.97f, 0.97f, 0.97f, 0.125f);
+		Circle.drawCircle(gl, this.x, this.y, 185.0f, 200, GL10.GL_TRIANGLE_FAN);
+		gl.glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+		Circle.drawArc(gl, this.x, this.y, 185.0f, 0.0f, (float)(datetime.get(Calendar.MINUTE) * 360.0f) / 60.0f, 200, GL10.GL_TRIANGLE_FAN);
+		gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		Circle.drawCircle(gl, this.x, this.y, 175.0f, 200, GL10.GL_TRIANGLE_FAN);
+
+		gl.glColor4f(0.97f, 0.97f, 0.97f, 0.125f);
+		Circle.drawCircle(gl, this.x, this.y, 170.0f, 200, GL10.GL_TRIANGLE_FAN);
+		gl.glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+		Circle.drawArc(gl, this.x, this.y, 170.0f, 0.0f, (float)(datetime.get(Calendar.HOUR) * 360.0f) / 12.0f, 200, GL10.GL_TRIANGLE_FAN);
+		gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		Circle.drawCircle(gl, this.x, this.y, 155.0f, 200, GL10.GL_TRIANGLE_FAN);
+
 		gl.glPopMatrix();
 	}
 }
