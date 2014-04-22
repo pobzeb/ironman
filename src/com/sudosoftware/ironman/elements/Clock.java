@@ -1,8 +1,5 @@
 package com.sudosoftware.ironman.elements;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -11,35 +8,17 @@ import javax.microedition.khronos.opengles.GL10;
 import android.util.Log;
 
 import com.sudosoftware.ironman.Point3D;
+import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
-import com.sudosoftware.ironman.util.BezierUtil;
+import com.sudosoftware.ironman.shapes.Triangle;
 
 public class Clock extends HUDElement {
 	private Calendar datetime;
 	private SimpleDateFormat dateFormatter = new SimpleDateFormat("MM-dd-yyyy");
 	private SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
 
-	private int points = 300;
-
 	public Clock() {
 		datetime = Calendar.getInstance();
-
-//		Point3D pStart =	new Point3D(-0.5f, -0.5f, 0.0f);
-//		Point3D pTan1 =		new Point3D(-0.5f,  0.5f, 0.0f);
-//		Point3D pTan2 =		new Point3D(-0.5f,  0.5f, 0.0f);
-//		Point3D pEnd =		new Point3D( 0.5f,  0.5f, 0.0f);
-//		vertices = new float[points * 3];
-//		for (int i = 0; i < points * 3; i+=3) {
-//			float t = (float)i / (float)points;
-//			vertices[i + 0] = BezierUtil.bezier(t, pStart.x, pTan1.x, pTan2.x, pEnd.x);
-//			vertices[i + 1] = BezierUtil.bezier(t, pStart.y, pTan1.y, pTan2.y, pEnd.y);
-//			vertices[i + 2] = BezierUtil.bezier(t, pStart.z, pTan1.z, pTan2.z, pEnd.z);
-//		}
-//		ByteBuffer bBuff = ByteBuffer.allocateDirect(vertices.length * 4);
-//		bBuff.order(ByteOrder.nativeOrder());
-//		vertBuff = bBuff.asFloatBuffer();
-//		vertBuff.put(vertices);
-//		vertBuff.position(0);
 	}
 
 	public void update() {
@@ -50,10 +29,29 @@ public class Clock extends HUDElement {
 		Log.i(this.getClass().getName(), "Time: " + timeFormatter.format(datetime.getTime()));
 		gl.glPushMatrix();
 		gl.glTranslatef(0, 0, 0);
-		gl.glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+		gl.glColor4f(1.0f, 0.5f, 0.5f, 1.0f);
 		gl.glLineWidth(10.0f);
-		Circle.drawCircle(gl, 0, 0, 0.5f, points);
-		Circle.drawArc(gl, 0, 0, 0.3f, 0.0f, 45.0f, points);
+		gl.glPointSize(10.0f);
+		Triangle.drawTriangle(gl, 200.0f, 200.0f, 200.0f, 200.0f, GL10.GL_TRIANGLES);
+		Circle.drawCircle(gl, 10.0f, 10.0f, 5.0f, 300, GL10.GL_LINE_LOOP);
+		Circle.drawArc(gl, 20.0f, 20.0f, 5.0f, 0.0f, 45.0f, 30, GL10.GL_LINE_STRIP);
+		BezierCurve.draw3PointCurve(gl,
+				new Point3D( 100.0f, 300.0f, 0.0f),
+				new Point3D( 100.0f, 100.0f, 0.0f),
+				new Point3D( 300.0f, 100.0f, 0.0f),
+				1000, GL10.GL_POINTS);
+		gl.glColor4f(0.5f, 1.0f, 1.0f, 1.0f);
+		BezierCurve.draw4PointCurve(gl,
+				new Point3D( 500.0f,  200.0f, 0.0f),
+				new Point3D( 200.0f,  100.0f, 0.0f),
+				new Point3D(-100.0f,  100.0f, 0.0f),
+				new Point3D( 500.0f,  200.0f, 0.0f),
+				1000, GL10.GL_POINTS);
+		gl.glColor4f(0.5f, 0.0f, 1.0f, 1.0f);
+		BezierCurve.draw2PointCurve(gl,
+				new Point3D(200.0f, 200.0f, 0.0f),
+				new Point3D(200.0f, 800.0f, 0.0f),
+				100, GL10.GL_LINE_STRIP);
 		gl.glPopMatrix();
 	}
 }

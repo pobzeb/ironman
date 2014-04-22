@@ -9,12 +9,13 @@ import javax.microedition.khronos.opengles.GL10;
 import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLU;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.sudosoftware.ironman.elements.Clock;
 import com.sudosoftware.ironman.elements.HUDElement;
-import com.sudosoftware.ironman.shapes.Triangle;
 
 public class IronmanActivity extends Activity {
 	private GLSurfaceView mGLView;
@@ -105,8 +106,9 @@ public class IronmanActivity extends Activity {
 
 		// List of HUD elements.
 		private List<HUDElement> hudElements = new ArrayList<HUDElement>();
-		private Triangle triangle;
 		private float angle;
+
+		private int screenWidth, screenHeight;
 
 		public GLRenderer() {}
 
@@ -114,9 +116,6 @@ public class IronmanActivity extends Activity {
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 			// Set the background frame color.
 			gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-			// Create a new Triangle.
-			triangle = new Triangle();
 		}
 
 		public void addHudElement(HUDElement element) {
@@ -130,38 +129,39 @@ public class IronmanActivity extends Activity {
 			gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 			gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 
+			// Set the viewport.
+			gl.glViewport(0, 0, this.screenWidth, this.screenHeight);
+			Log.i(this.getClass().getName(), "Screen: " + this.screenWidth + "x" + this.screenHeight);
+
 			// Load the projection matrix.
 			gl.glMatrixMode(GL10.GL_PROJECTION);
 			gl.glLoadIdentity();
 
 			// Load ortho view.
-			gl.glOrthof(-1.0f, 1.0f, -2.0f, 2.0f, -1.0f, 1.0f);
+			GLU.gluOrtho2D(gl, 0.0f, this.screenWidth, this.screenHeight, 0.0f);
 
 			// Set the model view matrix mode.
 			gl.glMatrixMode(GL10.GL_MODELVIEW);
 			gl.glLoadIdentity();
 
+			gl.glEnable(GL10.GL_LINE_SMOOTH);
+
 			// Rotate the view.
 			gl.glRotatef(angle, 0.0f, 0.0f, 1.0f);
-
-			// Draw the triangle.
-			triangle.draw(gl);
 
 			// Draw the HUD elements.
 			for (HUDElement element : this.hudElements) {
 				element.update();
 				element.render(gl);
 			}
+
+			gl.glDisable(GL10.GL_LINE_SMOOTH);
 		}
 
 		@Override
 		public void onSurfaceChanged(GL10 gl, int width, int height) {
-			gl.glViewport(0, 0, width, height);
-
-			float ratio = (float) width / height;
-			gl.glMatrixMode(GL10.GL_PROJECTION);
-			gl.glLoadIdentity();
-			gl.glFrustumf(-ratio, ratio, -1, 1, 3, 7);
+			this.screenWidth = width;
+			this.screenHeight = height;
 		}
 
 		public float getAngle() {
