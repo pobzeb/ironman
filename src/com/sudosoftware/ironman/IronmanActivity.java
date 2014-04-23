@@ -1,5 +1,6 @@
 package com.sudosoftware.ironman;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,111 +9,82 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.PixelFormat;
+import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.os.Bundle;
-import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceHolder.Callback;
+import android.view.SurfaceView;
+import android.view.ViewGroup.LayoutParams;
 
 import com.sudosoftware.ironman.elements.Clock;
 import com.sudosoftware.ironman.elements.HUDElement;
+import com.sudosoftware.ironman.gltext.GLTextFactory;
 
 public class IronmanActivity extends Activity {
-	private GLSurfaceView mGLView;
+	// Surface and renderer.
+	private GLSurfaceView glView;
+	private GLRenderer glRenderer;
+	private CameraView cameraView;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// Create a GLSurfaceView instance and set it
-		// as the ContentView for this Activity.
-		mGLView = new GLView(this);
-		setContentView(mGLView);
+		// Create the gl view and set it to translucent mode.
+		glView = new GLSurfaceView(this);
+		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+		glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+
+		// Create the Renderer and camera view.
+		glRenderer = new GLRenderer(this);
+		glView.setRenderer(glRenderer);
+		cameraView = new CameraView(this);
+
+		// Main view is the camera.
+		setContentView(cameraView);
+
+		// Next layer is the gl view.
+		addContentView(glView, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+		// Set the gl view as an overlay.
+		glView.setZOrderMediaOverlay(true);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		mGLView.onPause();
+		glView.onPause();
+		finish();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mGLView.onResume();
-	}
-
-	class GLView extends GLSurfaceView {
-
-		// Renderer.
-		private final GLRenderer renderer;
-
-		private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
-
-		private float mPreviousX;
-		private float mPreviousY;
-
-		public GLView(Context context) {
-			super(context);
-
-			// Set the renderer.
-			this.renderer = new GLRenderer();
-			setRenderer(this.renderer);
-
-			// Add the HUD elements.
-			this.renderer.addHudElement(new Clock(300, 600, 0.5f));
-		}
-
-		@Override
-		public boolean onTouchEvent(MotionEvent e) {
-			// MotionEvent reports input details from the touch screen
-			// and other input controls. In this case, we are only
-			// interested in events where the touch position changed.
-
-			float x = e.getX();
-			float y = e.getY();
-
-			switch (e.getAction()) {
-				case MotionEvent.ACTION_MOVE:
-
-					float dx = x - this.mPreviousX;
-					float dy = y - this.mPreviousY;
-
-					// reverse direction of rotation above the mid-line
-					if (y > getHeight() / 2) {
-						dx = dx * -1 ;
-					}
-
-					// reverse direction of rotation to left of the mid-line
-					if (x < getWidth() / 2) {
-						dy = dy * -1 ;
-					}
-
-					this.renderer.setAngle(
-						this.renderer.getAngle() +
-						((dx + dy) * TOUCH_SCALE_FACTOR));  // = 180.0f / 320
-						requestRender();
-			}
-
-			this.mPreviousX = x;
-			this.mPreviousY = y;
-			return true;
-		}
+		glView.onResume();
+		glView.bringToFront();
 	}
 
 	class GLRenderer implements GLSurfaceView.Renderer {
-
 		// List of HUD elements.
 		private List<HUDElement> hudElements = new ArrayList<HUDElement>();
-		private float angle;
+		private Context context;
 
 		private int screenWidth, screenHeight;
 
-		public GLRenderer() {}
+		public GLRenderer(Context context) {
+			super();
+			this.context = context;
+		}
 
 		@Override
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-			// Set the background frame color.
-			gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			// Get an instance of the GLTextFactory.
+			if (GLTextFactory.getInstance() == null) {
+				GLTextFactory.getInstance(gl, this.context);
+			}
 		}
 
 		public void addHudElement(HUDElement element) {
@@ -123,8 +95,8 @@ public class IronmanActivity extends Activity {
 		@Override
 		public void onDrawFrame(GL10 gl) {
 			// Redraw background color
-			gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+			gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 			// Set the viewport.
 			gl.glViewport(0, 0, this.screenWidth, this.screenHeight);
@@ -134,14 +106,11 @@ public class IronmanActivity extends Activity {
 			gl.glLoadIdentity();
 
 			// Load ortho view.
-			GLU.gluOrtho2D(gl, -(this.screenWidth / 2.0f), this.screenWidth / 2.0f, -(this.screenHeight / 2.0f), this.screenHeight / 2.0f);
+			GLU.gluOrtho2D(gl, 0, this.screenWidth, 0, this.screenHeight);
 
 			// Set the model view matrix mode.
 			gl.glMatrixMode(GL10.GL_MODELVIEW);
 			gl.glLoadIdentity();
-
-			// Rotate the view.
-//			gl.glRotatef(angle, 0.0f, 0.0f, 1.0f);
 
 			// Draw the HUD elements.
 			for (HUDElement element : this.hudElements) {
@@ -154,14 +123,47 @@ public class IronmanActivity extends Activity {
 		public void onSurfaceChanged(GL10 gl, int width, int height) {
 			this.screenWidth = width;
 			this.screenHeight = height;
+
+			// Add the HUD elements.
+			this.addHudElement(new Clock(this.screenWidth - 230, this.screenHeight - 230, 1.0f));
+//			this.addHudElement(new DemoShapes(this.screenWidth / 2, this.screenHeight / 2));
+		}
+	}
+
+	class CameraView extends SurfaceView implements Callback {
+		private Camera camera;
+
+		public CameraView(Context context) {
+			super(context);
+			getHolder().addCallback(this);
+			getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		}
 
-		public float getAngle() {
-			return angle;
+		@Override
+		public void surfaceCreated(SurfaceHolder holder) {
+			camera = Camera.open();
 		}
 
-		public void setAngle(float angle) {
-			this.angle = angle;
+		@Override
+		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+			Camera.Parameters params = camera.getParameters();
+			params.setPreviewSize(width, height);
+			camera.setParameters(params);
+
+			try {
+				camera.setPreviewDisplay(holder);
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			camera.startPreview();
+		}
+
+		@Override
+		public void surfaceDestroyed(SurfaceHolder holder) {
+			camera.stopPreview();
+			camera.release();
+			camera = null;
 		}
 	}
 }
