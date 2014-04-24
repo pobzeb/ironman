@@ -9,11 +9,11 @@ New Features List:
   - Roll, Pan and Tilt (Think fighter jet-like display)
 3. Create current weather information HUD element:
   - Current temp, condition, wind, etc.
-4. Create notifications HUD elements:
+4. Create ability to capture video.
+5. Create notifications HUD elements:
   - Email
   - SMS
   - FB
-5. Create ability to snap pictures and video
 6. Create system status HUD elements:
   - CPU, Memory, Battery, etc.
 7. Create calendar and upcoming events HUD element
@@ -25,3 +25,4 @@ Completed Features:
 
 1. Date and Time
 2. Camera preview layer
+3. Create ability to snap pictures

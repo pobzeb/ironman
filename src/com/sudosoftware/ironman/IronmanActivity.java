@@ -1,5 +1,7 @@
 package com.sudosoftware.ironman;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,17 +15,25 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.sudosoftware.ironman.elements.Clock;
 import com.sudosoftware.ironman.elements.HUDElement;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 
 public class IronmanActivity extends Activity {
+	public static final String TAG = IronmanActivity.class.getName();
+
 	// Surface and renderer.
 	private GLSurfaceView glView;
 	private GLRenderer glRenderer;
@@ -32,6 +42,9 @@ public class IronmanActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		// Don't let the screen go dim or turn off.
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// Create the gl view and set it to translucent mode.
 		glView = new GLSurfaceView(this);
@@ -65,6 +78,28 @@ public class IronmanActivity extends Activity {
 		super.onResume();
 		glView.onResume();
 		glView.bringToFront();
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event)  {
+		// Stop the power button from turning off the phone.
+		if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+			event.startTracking();
+			return true;
+		}
+
+		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event)  {
+		// Take a picture when the volume down button is released.
+		if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+			cameraView.takePicture();
+			return true;
+		}
+
+		return super.onKeyUp(keyCode, event);
 	}
 
 	class GLRenderer implements GLSurfaceView.Renderer {
@@ -130,7 +165,7 @@ public class IronmanActivity extends Activity {
 		}
 	}
 
-	class CameraView extends SurfaceView implements Callback {
+	class CameraView extends SurfaceView implements Callback, Camera.ShutterCallback, Camera.PictureCallback {
 		private Camera camera;
 
 		public CameraView(Context context) {
@@ -164,6 +199,47 @@ public class IronmanActivity extends Activity {
 			camera.stopPreview();
 			camera.release();
 			camera = null;
+		}
+
+		public void takePicture() {
+			camera.takePicture(null, null, this);
+		}
+
+		@Override
+		public void onShutter() {
+			Toast.makeText(this.getContext(), "Image Saved", Toast.LENGTH_SHORT).show();
+		}
+
+		@Override
+		public void onPictureTaken(byte[] data, Camera camera) {
+			new SavePhotoTask().execute(data);
+			this.camera.startPreview();
+		}
+
+		class SavePhotoTask extends AsyncTask<byte[], String, String> {
+			@Override
+			protected String doInBackground(byte[]... jpeg) {
+				File photo = new File(Environment.getExternalStorageDirectory() + "/DCIM/Ironman", System.currentTimeMillis() + ".jpg");
+				try {
+					if (!photo.exists()) {
+						photo.mkdirs();
+					}
+	
+					if (photo.exists()) {
+						photo.delete();
+					}
+
+					FileOutputStream fos = new FileOutputStream(photo);
+					fos.write(jpeg[0]);
+					fos.flush();
+					fos.close();
+				}
+				catch (java.io.IOException e) {
+					Log.e(TAG, e.getMessage());
+				}
+
+				return null;
+			}
 		}
 	}
 }

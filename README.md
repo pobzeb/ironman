@@ -14,6 +14,10 @@ Feel free to join in on this project. Let's see if we can't make it a reality.
 
 Currently using OpenGL 1.0 (because that's what I know at the moment) for all graphics.
 
+Current Features:
+ - Press the volume down key to capture the current image.
+ - Displays current time and date.
+
 See ToDoList.md for upcoming features.
 
 ----------
@@ -28,3 +32,5 @@ See ToDoList.md for upcoming features.
  - Added a few fonts to assets location.
  - Created a ColorPicker for quick color management.
  - Set application to use landscape mode and fullscreen (noTitle).
+ - Added image capture capability with volume down key press.
+ 
