@@ -106,15 +106,24 @@ public class Horizon extends HUDElement implements SensorEventListener {
 		float pitchAngle = Math.abs(pitch);		
 
 		// Draw the horizon and indicator tick marks.
-		gl.glLineWidth(10.0f);
-		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
+		gl.glLineWidth(5.0f);
+		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.25f);
 		Circle.drawArc(gl, 280.0f, pitchAngle, 360.0f - pitchAngle, 500, GL10.GL_TRIANGLE_FAN, false);
+		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
+		Circle.drawArc(gl, 280.0f, pitchAngle, 360.0f - pitchAngle, 500, GL10.GL_LINE_LOOP, false);
+		gl.glLineWidth(10.0f);
 		BezierCurve.draw2PointCurve(gl,
 			new Point3D(0.0f, -330.0f, 0.0f),
 			new Point3D(0.0f, -310.0f, 0.0f), GL10.GL_LINE_STRIP);
 		BezierCurve.draw2PointCurve(gl,
 			new Point3D(0.0f, 330.0f, 0.0f),
 			new Point3D(0.0f, 310.0f, 0.0f), GL10.GL_LINE_STRIP);		
+		BezierCurve.draw2PointCurve(gl,
+			new Point3D(-330.0f, 0.0f, 0.0f),
+			new Point3D(-310.0f, 0.0f, 0.0f), GL10.GL_LINE_STRIP);
+		BezierCurve.draw2PointCurve(gl,
+			new Point3D(330.0f, 0.0f, 0.0f),
+			new Point3D(310.0f, 0.0f, 0.0f), GL10.GL_LINE_STRIP);
 		gl.glLineWidth(1.0f);
 
 		gl.glPopMatrix();
