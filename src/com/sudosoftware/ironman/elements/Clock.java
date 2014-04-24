@@ -5,11 +5,11 @@ import java.util.Calendar;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import com.sudosoftware.ironman.Point3D;
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
+import com.sudosoftware.ironman.shapes.Point3D;
 import com.sudosoftware.ironman.util.ColorPicker;
 
 public class Clock extends HUDElement {
@@ -27,17 +27,21 @@ public class Clock extends HUDElement {
 	private GLText glMonthText;
 	private GLText glTimeText;
 
-	// Scale to display clock.
-	public float scale;
-
 	public Clock() {
-		this(0, 0, 1.0f);
+		super();
+	}
+
+	public Clock(int x, int y) {
+		super(x, y);
 	}
 
 	public Clock(int x, int y, float scale) {
-		this.x = x;
-		this.y = y;
-		this.scale = scale;
+		super(x, y, scale);
+	}
+
+	@Override
+	public void init() {
+		// Get the date and time.
 		this.datetime = Calendar.getInstance();
 
 		// Load the fonts.
@@ -69,7 +73,7 @@ public class Clock extends HUDElement {
 		// Seconds hand.
 		ColorPicker.setGLColor(gl, ColorPicker.GRAY25, 0.125f);
 		Circle.drawCircle(gl, 200.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
-		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 1.0f);
+		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
 		Circle.drawArc(gl, 200.0f, 0.0f, (float)(datetime.get(Calendar.SECOND) * 360.0f) / 60.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
 		Circle.drawCircle(gl, 190.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
@@ -77,7 +81,7 @@ public class Clock extends HUDElement {
 		// Minutes hand.
 		ColorPicker.setGLColor(gl, ColorPicker.GRAY25, 0.125f);
 		Circle.drawCircle(gl, 185.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
-		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 1.0f);
+		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
 		Circle.drawArc(gl, 185.0f, 0.0f, (float)(datetime.get(Calendar.MINUTE) * 360.0f) / 60.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
 		Circle.drawCircle(gl, 175.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
@@ -85,7 +89,7 @@ public class Clock extends HUDElement {
 		// Hours hand.
 		ColorPicker.setGLColor(gl, ColorPicker.GRAY25, 0.125f);
 		Circle.drawCircle(gl, 170.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
-		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 1.0f);
+		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
 		Circle.drawArc(gl, 170.0f, 0.0f, (float)(datetime.get(Calendar.HOUR) * 360.0f) / 12.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
 		Circle.drawCircle(gl, 155.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);

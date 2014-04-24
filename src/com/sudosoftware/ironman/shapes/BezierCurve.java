@@ -2,8 +2,6 @@ package com.sudosoftware.ironman.shapes;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import com.sudosoftware.ironman.Point3D;
-
 public class BezierCurve extends Shape {
 	public static void draw2PointCurve(GL10 gl, Point3D start, Point3D end, int drawMode) {
 		float[] vertices = new float[2 * 3];

@@ -17,12 +17,23 @@ Currently using OpenGL 1.0 (because that's what I know at the moment) for all gr
 Current Features:
  - Press the volume down key to capture the current image.
  - Displays current time and date.
+ - Displays a horizon indicator to show pitch and roll.
 
 See ToDoList.md for upcoming features.
 
 ----------
  Updates:
 ----------
+
+04-24-2014:
+ - Major work on Circle and Arc drawing methods.
+ - Added new Horizon HUD element that shows pitch and roll positions.
+ - Added partial transparency to clock hands.
+ - Updates HUDElement base class to include pause, resume and destroy methods.
+ - Updated HUD elements to use new methods.
+ - Added SensorManagerFactory to manage the SensorManager for HUD elements.
+ - Moved Point3D into shapes package.
+ - Started work on Altimiter HUD element.
 
 04-23-2014:
  - Added Camera preview layer under OpenGL HUD layer.

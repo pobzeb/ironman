@@ -6,8 +6,6 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import com.sudosoftware.ironman.Point3D;
-
 public abstract class Shape {
 	protected static void draw(GL10 gl, Point3D[] points, int vertexCount, int drawMode) {
 		// Convert the points to float vertices.

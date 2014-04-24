@@ -5,20 +5,18 @@ New Features List:
   - Location (Lat, Long)
   - Direction (heading: N, S, W, E)
   - Altitude
-2. Create position information HUD element:
-  - Roll, Pan and Tilt (Think fighter jet-like display)
-3. Create current weather information HUD element:
+2. Create current weather information HUD element:
   - Current temp, condition, wind, etc.
-4. Create ability to capture video.
-5. Create notifications HUD elements:
+3. Create ability to capture video.
+4. Create notifications HUD elements:
   - Email
   - SMS
   - FB
-6. Create system status HUD elements:
+5. Create system status HUD elements:
   - CPU, Memory, Battery, etc.
-7. Create calendar and upcoming events HUD element
-8. Create currently playing/playlist HUD elements
-9. Create sound meter bar graph HUD element
+6. Create calendar and upcoming events HUD element
+7. Create currently playing/playlist HUD elements
+8. Create sound meter bar graph HUD element
 
 Completed Features:
 --------------------
@@ -26,3 +24,5 @@ Completed Features:
 1. Date and Time
 2. Camera preview layer
 3. Create ability to snap pictures
+4. Create position information HUD element:
+  - Roll, Pan and Tilt (Think fighter jet-like display)

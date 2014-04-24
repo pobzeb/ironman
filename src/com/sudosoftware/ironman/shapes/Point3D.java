@@ -1,4 +1,4 @@
-package com.sudosoftware.ironman;
+package com.sudosoftware.ironman.shapes;
 
 public class Point3D {
 	public float x, y, z;

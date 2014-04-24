@@ -2,25 +2,27 @@ package com.sudosoftware.ironman.elements;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import com.sudosoftware.ironman.Point3D;
 import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
+import com.sudosoftware.ironman.shapes.Point3D;
 import com.sudosoftware.ironman.shapes.Triangle;
 
 public class DemoShapes extends HUDElement {
 
 	public DemoShapes() {
-		this(0, 0);
+		super();
 	}
 
 	public DemoShapes(int x, int y) {
-		this.x = x;
-		this.y = y;
+		super(x, y);
+	}
+
+	public DemoShapes(int x, int y, float scale) {
+		super(x, y, scale);
 	}
 
 	@Override
-	public void update() {
-	}
+	public void update() {}
 
 	@Override
 	public void render(GL10 gl) {

@@ -27,9 +27,12 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.sudosoftware.ironman.elements.Altimiter;
 import com.sudosoftware.ironman.elements.Clock;
 import com.sudosoftware.ironman.elements.HUDElement;
+import com.sudosoftware.ironman.elements.Horizon;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
+import com.sudosoftware.ironman.util.SensorManagerFactory;
 
 public class IronmanActivity extends Activity {
 	public static final String TAG = IronmanActivity.class.getName();
@@ -45,6 +48,9 @@ public class IronmanActivity extends Activity {
 
 		// Don't let the screen go dim or turn off.
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		// Initialize the sensor factory.
+		SensorManagerFactory.getInstance(this);
 
 		// Create the gl view and set it to translucent mode.
 		glView = new GLSurfaceView(this);
@@ -70,6 +76,7 @@ public class IronmanActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		glView.onPause();
+		glRenderer.onPause();
 		finish();
 	}
 
@@ -78,6 +85,13 @@ public class IronmanActivity extends Activity {
 		super.onResume();
 		glView.onResume();
 		glView.bringToFront();
+		glRenderer.onResume();
+	}
+
+	@Override
+	protected void onDestroy() {
+		glRenderer.onDestroy();
+		super.onDestroy();
 	}
 
 	@Override
@@ -127,6 +141,27 @@ public class IronmanActivity extends Activity {
 			this.hudElements.add(element);
 		}
 
+		public void onPause() {
+			// Pause the HUD elements.
+			for (HUDElement element : this.hudElements) {
+				element.onPause();
+			}
+		}
+
+		public void onResume() {
+			// Resume the HUD elements.
+			for (HUDElement element : this.hudElements) {
+				element.onResume();
+			}
+		}
+
+		public void onDestroy() {
+			// Destroy the HUD elements.
+			for (HUDElement element : this.hudElements) {
+				element.onDestroy();
+			}
+		}
+
 		@Override
 		public void onDrawFrame(GL10 gl) {
 			// Redraw background color
@@ -160,7 +195,9 @@ public class IronmanActivity extends Activity {
 			this.screenHeight = height;
 
 			// Add the HUD elements.
-			this.addHudElement(new Clock(this.screenWidth - 230, this.screenHeight - 230, 1.0f));
+			this.addHudElement(new Clock(this.screenWidth - 230, this.screenHeight - 230));
+			this.addHudElement(new Altimiter(this.screenWidth / 2, this.screenHeight / 2));
+			this.addHudElement(new Horizon(this.screenWidth / 2, this.screenHeight / 2));
 //			this.addHudElement(new DemoShapes(this.screenWidth / 2, this.screenHeight / 2));
 		}
 	}
