@@ -33,7 +33,7 @@ See ToDoList.md for upcoming features.
  - Updated HUD elements to use new methods.
  - Added SensorManagerFactory to manage the SensorManager for HUD elements.
  - Moved Point3D into shapes package.
- - Started work on Altimiter HUD element.
+ - Started work on Altimeter HUD element.
 
 04-23-2014:
  - Added Camera preview layer under OpenGL HUD layer.

@@ -13,7 +13,7 @@ import com.sudosoftware.ironman.shapes.Point3D;
 import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
-public class Altimiter extends HUDElement implements SensorEventListener {
+public class Altimeter extends HUDElement implements SensorEventListener {
 	// Monitor current altitude.
 	private float altitude;
 
@@ -21,15 +21,15 @@ public class Altimiter extends HUDElement implements SensorEventListener {
 	private SensorManager sensorManager;
 	private Sensor presure;
 
-	public Altimiter() {
+	public Altimeter() {
 		super();
 	}
 
-	public Altimiter(int x, int y) {
+	public Altimeter(int x, int y) {
 		super(x, y);
 	}
 
-	public Altimiter(int x, int y, float scale) {
+	public Altimeter(int x, int y, float scale) {
 		super(x, y, scale);
 	}
 

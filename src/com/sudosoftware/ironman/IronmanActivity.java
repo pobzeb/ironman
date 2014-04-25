@@ -27,7 +27,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.sudosoftware.ironman.elements.Altimiter;
+import com.sudosoftware.ironman.elements.Altimeter;
 import com.sudosoftware.ironman.elements.Clock;
 import com.sudosoftware.ironman.elements.HUDElement;
 import com.sudosoftware.ironman.elements.Horizon;
@@ -196,7 +196,7 @@ public class IronmanActivity extends Activity {
 
 			// Add the HUD elements.
 			this.addHudElement(new Clock(this.screenWidth - 230, this.screenHeight - 230));
-			this.addHudElement(new Altimiter(this.screenWidth / 2, this.screenHeight / 2));
+			this.addHudElement(new Altimeter(this.screenWidth / 2, this.screenHeight / 2));
 			this.addHudElement(new Horizon(this.screenWidth / 2, this.screenHeight / 2));
 //			this.addHudElement(new DemoShapes(this.screenWidth / 2, this.screenHeight / 2));
 		}
