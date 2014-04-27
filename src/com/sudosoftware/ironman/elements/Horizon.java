@@ -41,7 +41,7 @@ public class Horizon extends HUDElement implements SensorEventListener {
 
 	@Override
 	public void init() {
-		sensorManager = SensorManagerFactory.getInstance().getManager();
+		sensorManager = SensorManagerFactory.getInstance().getSensorManager();
 		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 		magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		registerListeners();

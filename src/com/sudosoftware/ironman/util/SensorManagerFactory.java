@@ -6,6 +6,7 @@ import android.hardware.SensorManager;
 public class SensorManagerFactory {
 	private Context context;
 	private SensorManager sensorManager;
+	private GPSTracker locationTracker;
 
 	private static SensorManagerFactory instance = null;
 	private static Object lock = new Object();
@@ -15,6 +16,9 @@ public class SensorManagerFactory {
 
 		// Get the sensor manager.
 		sensorManager = (SensorManager)this.context.getSystemService(Context.SENSOR_SERVICE);
+
+		// Get the location tracker.
+		locationTracker = new GPSTracker(this.context);
 	}
 
 	public static SensorManagerFactory getInstance(Context context) {
@@ -33,7 +37,11 @@ public class SensorManagerFactory {
 		return instance;
 	}
 
-	public SensorManager getManager() {
+	public SensorManager getSensorManager() {
 		return sensorManager;
+	}
+
+	public GPSTracker getLocationTracker() {
+		return locationTracker;
 	}
 }

@@ -52,6 +52,11 @@ public class IronmanActivity extends Activity {
 		// Initialize the sensor factory.
 		SensorManagerFactory.getInstance(this);
 
+		// Check the location service.
+		if (!SensorManagerFactory.getInstance().getLocationTracker().canGetLocation()) {
+			SensorManagerFactory.getInstance().getLocationTracker().showSettingsAlert();
+		}
+
 		// Create the gl view and set it to translucent mode.
 		glView = new GLSurfaceView(this);
 		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);

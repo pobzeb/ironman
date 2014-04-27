@@ -1,11 +1,8 @@
 package com.sudosoftware.ironman.elements;
 
-import javax.microedition.khronos.opengles.GL10;
+import java.text.NumberFormat;
 
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
+import javax.microedition.khronos.opengles.GL10;
 
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
@@ -13,15 +10,18 @@ import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
 import com.sudosoftware.ironman.shapes.Point3D;
 import com.sudosoftware.ironman.util.ColorPicker;
+import com.sudosoftware.ironman.util.GPSTracker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
-public class Altimeter extends HUDElement implements SensorEventListener {
-	// Monitor current altitude.
+public class Altimeter extends HUDElement {
+    // Monitor current altitude.
 	private float altitude;
 
-	// Hold the sensor info.
-	private SensorManager sensorManager;
-	private Sensor presure;
+	// Hold the location info.
+	private GPSTracker locationTracker;
+
+	// Set the altitude number formatter.
+	private NumberFormat altitudeFormat;
 
 	// GL Text for display.
 	private GLText glAltitudeText;
@@ -40,9 +40,13 @@ public class Altimeter extends HUDElement implements SensorEventListener {
 
 	@Override
 	public void init() {
-		sensorManager = SensorManagerFactory.getInstance().getManager();
-		presure = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-		registerListeners();
+		locationTracker = SensorManagerFactory.getInstance().getLocationTracker();
+
+		// Set the formatter.
+		altitudeFormat = NumberFormat.getInstance();
+		altitudeFormat.setMaximumFractionDigits(2);
+		altitudeFormat.setMinimumFractionDigits(2);
+		altitudeFormat.setGroupingUsed(false);
 
 		// Load the font.
 		glAltitudeText = GLTextFactory.getInstance().createGLText();
@@ -50,12 +54,13 @@ public class Altimeter extends HUDElement implements SensorEventListener {
 
 	}
 
-	private void registerListeners() {
-		sensorManager.registerListener(this, presure, SensorManager.SENSOR_DELAY_NORMAL);
-	}
-
 	@Override
-	public void update() {}
+	public void update() {
+		if (locationTracker.canGetLocation()) {
+			// Get the altitude and convert it from meters to feet.
+			altitude = (float)locationTracker.getAltitude() * 3.28084f;
+		}
+	}
 
 	@Override
 	public void render(GL10 gl) {
@@ -101,7 +106,12 @@ public class Altimeter extends HUDElement implements SensorEventListener {
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		glAltitudeText.setScale(1.0f);
 		ColorPicker.setGLTextColor(glAltitudeText, ColorPicker.CORAL, 1.0f);
-		glAltitudeText.draw(altitude + " ft.", 740.0f - GLTextFactory.getStringWidth(glAltitudeText, altitude + " ft.") - 15.0f, -(glAltitudeText.getCharHeight() / 2.0f) + 5.0f);
+		String altitudeDisplay = "0.0";
+		try {
+			altitudeDisplay = altitudeFormat.format(altitude);
+		}
+		catch (Exception e) {}
+		glAltitudeText.draw(altitudeDisplay + " ft.", 740.0f - GLTextFactory.getStringWidth(glAltitudeText, altitudeDisplay + " ft.") - 15.0f, -(glAltitudeText.getCharHeight() / 2.0f) + 5.0f);
 		glAltitudeText.end();
 		gl.glDisable(GL10.GL_BLEND);
 		gl.glDisable(GL10.GL_TEXTURE_2D);
@@ -111,27 +121,14 @@ public class Altimeter extends HUDElement implements SensorEventListener {
 
 	@Override
 	public void onPause() {
-		sensorManager.unregisterListener(this);
+		locationTracker.onPause();
 	}
 
 	@Override
-	public void onResume() {
-		registerListeners();
-	}
+	public void onResume() {}
 
 	@Override
 	public void onDestroy() {
-		sensorManager.unregisterListener(this);
+		locationTracker.onPause();
 	}
-
-	@Override
-	public void onSensorChanged(SensorEvent event) {
-		if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
-			// Get the altitude.
-	        altitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, event.values[0]);
-		}
-	}
-
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 }
