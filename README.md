@@ -15,7 +15,11 @@ Feel free to join in on this project. Let's see if we can't make it a reality.
 Currently using OpenGL 1.0 (because that's what I know at the moment) for all graphics.
 
 Current Features:
- - Press the volume down key to capture the current image.
+ - Tap the mode in the bottom right corner of the screen to toggle through
+   available modes. Tap anywhere else to select the mode or press the volume
+   down key to select the mode.
+ - Press the volume down key to take action on the current mode. For example,
+   snap a photo in Picture mode.
  - Displays current time and date.
  - Displays a horizon indicator to show pitch and roll.
  - Displays current altitude.
@@ -27,6 +31,15 @@ See ToDoList.md for upcoming features.
 ----------
  Updates:
 ----------
+
+04-28-2014:
+ - Updates to correct issues with camera crashing application on some devices.
+ - Added ActivityMode to allow switching current activity. Modes so far are:
+   - Picture (Allows taking pictures with the volume down key)
+   - Video (Not implemented)
+   - Calendar (Not implemented)
+   - Volume (Allows changing the volume on the device with the volume keys)
+ - Updated picture mode to show where picture was stored.
 
 04-27-2014:
  - Added new Compass HUD element.

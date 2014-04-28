@@ -74,7 +74,7 @@ public class Location extends HUDElement {
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		glLatLongText.setScale(1.0f);
+		glLatLongText.setScale(1.5f);
 		ColorPicker.setGLTextColor(glLatLongText, ColorPicker.CORAL, 1.0f);
 		String latLongDisplay = "--.--, --.--";
 		try {
