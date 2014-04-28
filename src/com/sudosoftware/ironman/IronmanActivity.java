@@ -20,8 +20,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
@@ -33,16 +33,31 @@ import com.sudosoftware.ironman.elements.Compass;
 import com.sudosoftware.ironman.elements.HUDElement;
 import com.sudosoftware.ironman.elements.Horizon;
 import com.sudosoftware.ironman.elements.Location;
+import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
+import com.sudosoftware.ironman.util.ActivityMode;
+import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
 public class IronmanActivity extends Activity {
 	public static final String TAG = IronmanActivity.class.getName();
 
+	// Original Screen Size.
+	public static final float ZERO_SCALE_SCREEN_WIDTH = 1794.0f;
+
+	// Mode changing blink rate.
+	private static final long MODE_CHANGE_BLINK_RATE = 250; // 250 ms
+
 	// Surface and renderer.
 	private GLSurfaceView glView;
 	private GLRenderer glRenderer;
 	private CameraView cameraView;
+
+	// Hold the current activity mode.
+	private ActivityMode currentMode = ActivityMode.findActivityMode(0);
+	private boolean modeSelected = true;
+	private long modeChangeStarted;
+	private boolean modeChangeBlinkOn = true;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -59,24 +74,39 @@ public class IronmanActivity extends Activity {
 			SensorManagerFactory.getInstance().getLocationTracker().showSettingsAlert();
 		}
 
-		// Create the gl view and set it to translucent mode.
-		glView = new GLSurfaceView(this);
-		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-		glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+		// Need to know if this loads.
+		boolean cameraLoaded = false;
+		try {
+			// Try to enable the camera mode.
+			cameraView = new CameraView(this);
 
-		// Create the Renderer and camera view.
+			// Add the camera view.
+			addContentView(cameraView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+			cameraLoaded = true;
+		}
+		catch (Exception e) {
+			toastMessage("Error loading camera view. Disabled for now.", Toast.LENGTH_SHORT);
+		}
+
+		// Create the glView and set it to translucent mode if the camera loaded.
+		glView = new GLSurfaceView(this);
+		if (cameraLoaded) {
+			glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+			glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+		}
+
+		// Create the Renderer view and add it to the glView.
 		glRenderer = new GLRenderer(this);
 		glView.setRenderer(glRenderer);
-		cameraView = new CameraView(this);
 
-		// Main view is the camera.
-		setContentView(cameraView);
+		// Add the glView.
+		addContentView(glView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
-		// Next layer is the gl view.
-		addContentView(glView, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-
-		// Set the gl view as an overlay.
-		glView.setZOrderMediaOverlay(true);
+		// Only need to set the overlay if the camera loaded.
+		if (cameraLoaded) {
+			// Set the gl view as an overlay.
+			glView.setZOrderMediaOverlay(true);
+		}
 	}
 
 	@Override
@@ -103,10 +133,13 @@ public class IronmanActivity extends Activity {
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event)  {
-		// Stop the power button from turning off the phone.
-		if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-			event.startTracking();
-			return true;
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_VOLUME_DOWN:
+			if (currentMode != ActivityMode.VOLUME_MODE) {
+				event.startTracking();
+				return true;
+			}
+			break;
 		}
 
 		return super.onKeyDown(keyCode, event);
@@ -114,13 +147,77 @@ public class IronmanActivity extends Activity {
 
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event)  {
-		// Take a picture when the volume down button is released.
-		if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-			cameraView.takePicture();
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_VOLUME_DOWN:
+			// Use volume down key to take action on the current mode. 
+			switch (currentMode) {
+			case PICTURE_MODE:
+				if (modeSelected) {
+					// Take a picture.
+					cameraView.takePicture();
+					return true;
+				}
+				break;
+
+			case VIDEO_MODE:
+				if (modeSelected) {
+					// Start or stop taking video.
+					toastMessage("Video mode not implemented yet.", Toast.LENGTH_SHORT);
+					return true;
+				}
+				break;
+
+			case CALENDAR_MODE:
+				if (modeSelected) {
+					// Show the upcoming events from the calendar.
+					toastMessage("Calendar mode not implemented yet.", Toast.LENGTH_SHORT);
+					return true;
+				}
+				break;
+
+			case VOLUME_MODE:
+				if (modeSelected) {
+					// Allow volume changing.
+					return super.onKeyUp(keyCode, event);
+				}
+				break;
+			}
+
+			// Select the current mode.
+			modeSelected = true;
 			return true;
 		}
 
 		return super.onKeyUp(keyCode, event);
+	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		// Determine scaling depending on screen size.
+		float scaleBy = glRenderer.getScale();
+
+		// Toggle current mode when touched.
+		if (event.getX() < (300 * scaleBy) && event.getY() > glRenderer.screenHeight - (100 * scaleBy) && event.getAction() == MotionEvent.ACTION_UP) {
+			// Start mode change.
+			currentMode = ActivityMode.findActivityMode(currentMode.mode + 1);
+			if (currentMode == null) currentMode = ActivityMode.findActivityMode(0);
+			modeSelected = false;
+			modeChangeStarted = System.currentTimeMillis();
+			return true;
+		}
+		else {
+			// Turn off mode selection.
+			if (!modeSelected) {
+				modeSelected = true;
+				return true;
+			}
+		}
+
+		return super.onTouchEvent(event);
+	}
+
+	public void toastMessage(String message, int length) {
+		Toast.makeText(this, message, length).show();
 	}
 
 	class GLRenderer implements GLSurfaceView.Renderer {
@@ -128,7 +225,11 @@ public class IronmanActivity extends Activity {
 		private List<HUDElement> hudElements = new ArrayList<HUDElement>();
 		private Context context;
 
+		// Hold screen size.
 		private int screenWidth, screenHeight;
+
+		// GL Text for display.
+		private GLText glCurrentModeText;
 
 		public GLRenderer(Context context) {
 			super();
@@ -141,6 +242,10 @@ public class IronmanActivity extends Activity {
 			if (GLTextFactory.getInstance() == null) {
 				GLTextFactory.getInstance(gl, this.context);
 			}
+
+			// Load the font.
+			glCurrentModeText = GLTextFactory.getInstance().createGLText();
+			glCurrentModeText.load("Roboto-Regular.ttf", 35, 2, 2);
 		}
 
 		public void addHudElement(HUDElement element) {
@@ -198,6 +303,48 @@ public class IronmanActivity extends Activity {
 			for (HUDElement element : this.hudElements) {
 				element.render(gl);
 			}
+
+			gl.glPushMatrix();
+
+			// Move to the element's location.
+			gl.glTranslatef(20.0f, 20.0f, 0.0f);
+
+			// Scale the element.
+			gl.glScalef(1.0f, 1.0f, 1.0f);
+
+			// Draw the current mode.
+			gl.glEnable(GL10.GL_TEXTURE_2D);
+			gl.glEnable(GL10.GL_BLEND);
+			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+			glCurrentModeText.setScale(1.0f);
+			ColorPicker.setGLTextColor(glCurrentModeText, ColorPicker.CORAL, 1.0f);
+			if (!modeSelected) {
+				if ((System.currentTimeMillis() - modeChangeStarted) >= MODE_CHANGE_BLINK_RATE) {
+					modeChangeBlinkOn = !modeChangeBlinkOn;
+					modeChangeStarted = System.currentTimeMillis();
+				}
+				if (modeChangeBlinkOn)
+					glCurrentModeText.draw("Mode: " + IronmanActivity.this.currentMode.name, 0.0f, 0.0f);
+				else
+					glCurrentModeText.draw("Mode: ", 0.0f, 0.0f);
+			}
+			else {
+				glCurrentModeText.draw("Mode: " + IronmanActivity.this.currentMode.name, 0.0f, 0.0f);
+			}
+			glCurrentModeText.end();
+			gl.glDisable(GL10.GL_BLEND);
+			gl.glDisable(GL10.GL_TEXTURE_2D);
+
+			gl.glPopMatrix();
+		}
+
+		public float getScale() {
+			float scaleBy = 1.0f;
+			if (screenWidth < ZERO_SCALE_SCREEN_WIDTH) {
+				scaleBy = (float)screenWidth / ZERO_SCALE_SCREEN_WIDTH;
+			}
+
+			return scaleBy;
 		}
 
 		@Override
@@ -205,50 +352,82 @@ public class IronmanActivity extends Activity {
 			this.screenWidth = width;
 			this.screenHeight = height;
 
+			// Determine scaling depending on screen size.
+			float scaleBy = getScale();
+
 			// Add the HUD elements.
-			this.addHudElement(new Clock(this.screenWidth - 220, this.screenHeight - 220));
-			this.addHudElement(new Altimeter(this.screenWidth / 2, this.screenHeight / 2));
-			this.addHudElement(new Compass(this.screenWidth / 2, this.screenHeight / 2));
-			this.addHudElement(new Horizon(this.screenWidth / 2, this.screenHeight / 2));
-			this.addHudElement(new Location(this.screenWidth / 2, 120));
+			this.addHudElement(new Clock(this.screenWidth - (int)(220 * scaleBy), this.screenHeight - (int)(220 * scaleBy), scaleBy));
+			this.addHudElement(new Altimeter(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
+			this.addHudElement(new Compass(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
+			this.addHudElement(new Horizon(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
+			this.addHudElement(new Location(this.screenWidth / 2, (int)(120 * scaleBy), scaleBy));
 //			this.addHudElement(new DemoShapes(this.screenWidth / 2, this.screenHeight / 2));
 		}
 	}
 
-	class CameraView extends SurfaceView implements Callback, Camera.ShutterCallback, Camera.PictureCallback {
+	class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.ShutterCallback, Camera.PictureCallback, Camera.PreviewCallback {
 		private Camera camera;
+		private SurfaceHolder mHolder;
 
 		public CameraView(Context context) {
 			super(context);
-			getHolder().addCallback(this);
-			getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+			mHolder = getHolder();
+			mHolder.addCallback(this);
+			mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		}
 
 		@Override
 		public void surfaceCreated(SurfaceHolder holder) {
-			camera = Camera.open();
+			try {
+				// Try to open the camera and set the callbacks.
+				camera = Camera.open();
+				camera.setPreviewDisplay(holder);
+				camera.setPreviewCallback(this);
+			}
+			catch (IOException e) {}
 		}
 
 		@Override
 		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-			Camera.Parameters params = camera.getParameters();
-			params.setPreviewSize(width, height);
-			camera.setParameters(params);
+			try {
+				// Stop the preview first.
+				camera.stopPreview();
+			}
+			catch (Exception e) {}
 
 			try {
-				camera.setPreviewDisplay(holder);
+				// Set the preview size.
+				Camera.Parameters params = camera.getParameters();
+				List<Camera.Size> previewSizes = params.getSupportedPreviewSizes();
+				for (Camera.Size previewSize : previewSizes) {
+					if (previewSize.width == width) {
+						params.setPreviewSize(previewSize.width, previewSize.height);
+						break;
+					}
+				}
+				camera.setParameters(params);
 			}
-			catch (IOException e) {
-				e.printStackTrace();
+			catch (Exception e) {}
+
+			try {
+				// Start the preview.
+				camera.startPreview();
 			}
-			camera.startPreview();
+			catch (Exception e) {
+			}
 		}
 
 		@Override
 		public void surfaceDestroyed(SurfaceHolder holder) {
-			camera.stopPreview();
-			camera.release();
+			try {
+				camera.release();
+			}
+			catch (Exception e) {}
 			camera = null;
+		}
+
+		@Override
+		public void onPreviewFrame(byte[] data, Camera camera) {
 		}
 
 		public void takePicture() {
@@ -257,7 +436,6 @@ public class IronmanActivity extends Activity {
 
 		@Override
 		public void onShutter() {
-			Toast.makeText(this.getContext(), "Image Saved", Toast.LENGTH_SHORT).show();
 		}
 
 		@Override
@@ -267,6 +445,7 @@ public class IronmanActivity extends Activity {
 		}
 
 		class SavePhotoTask extends AsyncTask<byte[], String, String> {
+			private String toastMessage;
 			@Override
 			protected String doInBackground(byte[]... jpeg) {
 				File photo = new File(Environment.getExternalStorageDirectory() + "/DCIM/Ironman", System.currentTimeMillis() + ".jpg");
@@ -283,12 +462,18 @@ public class IronmanActivity extends Activity {
 					fos.write(jpeg[0]);
 					fos.flush();
 					fos.close();
+					toastMessage = "Image Saved to " + photo.getAbsolutePath();
 				}
 				catch (java.io.IOException e) {
-					Log.e(TAG, e.getMessage());
+					toastMessage = "Error saving image!";
 				}
 
 				return null;
+			}
+
+			@Override
+			protected void onPostExecute(String result) {
+				toastMessage(toastMessage, Toast.LENGTH_LONG);
 			}
 		}
 	}
