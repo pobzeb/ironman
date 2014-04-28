@@ -23,7 +23,7 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 	boolean canGetLocation = false;
 
 	Location location;
-	double altitude = 0.0, latitude = 0.0, longitude = 0.0;
+	double altitude = 0.0, bearing = 0.0, latitude = 0.0, longitude = 0.0;
 
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters.
 	private static final long MIN_TIME_BETWEEN_UPDATES = 100; // 1 ms.
@@ -71,6 +71,14 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 		return altitude;
 	}
 
+	public double getBearing() {
+		if (location != null) {
+			bearing = location.getBearing();
+		}
+
+		return bearing;
+	}
+
 	public double getLatitude() {
 		if (location != null) {
 			latitude = location.getLatitude();
@@ -115,10 +123,11 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 	@Override
 	public void onLocationChanged(Location location) {
 		Log.i(IronmanActivity.TAG, "Location Changed");
-		// Check the location and get the altitude.
+		// Check the location.
 		if (location != null) {
-			Log.i(IronmanActivity.TAG, "Altitude: " + location.getAltitude() + ", Lat: " + location.getLatitude() + ", Long: " + location.getLongitude());
+			Log.i(IronmanActivity.TAG, "Altitude: " + location.getAltitude() + ", Bearing: " + location.getBearing() + ", Lat: " + location.getLatitude() + ", Lon: " + location.getLongitude());
 			altitude = location.getAltitude();
+			bearing = location.getBearing();
 			latitude = location.getLatitude();
 			longitude = location.getLongitude();
 		}

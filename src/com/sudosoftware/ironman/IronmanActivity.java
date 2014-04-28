@@ -29,8 +29,10 @@ import android.widget.Toast;
 
 import com.sudosoftware.ironman.elements.Altimeter;
 import com.sudosoftware.ironman.elements.Clock;
+import com.sudosoftware.ironman.elements.Compass;
 import com.sudosoftware.ironman.elements.HUDElement;
 import com.sudosoftware.ironman.elements.Horizon;
+import com.sudosoftware.ironman.elements.Location;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
@@ -187,9 +189,13 @@ public class IronmanActivity extends Activity {
 			gl.glMatrixMode(GL10.GL_MODELVIEW);
 			gl.glLoadIdentity();
 
-			// Draw the HUD elements.
+			// Update the HUD elements.
 			for (HUDElement element : this.hudElements) {
 				element.update();
+			}
+
+			// Draw the HUD elements.
+			for (HUDElement element : this.hudElements) {
 				element.render(gl);
 			}
 		}
@@ -200,9 +206,11 @@ public class IronmanActivity extends Activity {
 			this.screenHeight = height;
 
 			// Add the HUD elements.
-			this.addHudElement(new Clock(this.screenWidth - 230, this.screenHeight - 230));
+			this.addHudElement(new Clock(this.screenWidth - 220, this.screenHeight - 220));
 			this.addHudElement(new Altimeter(this.screenWidth / 2, this.screenHeight / 2));
+			this.addHudElement(new Compass(this.screenWidth / 2, this.screenHeight / 2));
 			this.addHudElement(new Horizon(this.screenWidth / 2, this.screenHeight / 2));
+			this.addHudElement(new Location(this.screenWidth / 2, 120));
 //			this.addHudElement(new DemoShapes(this.screenWidth / 2, this.screenHeight / 2));
 		}
 	}

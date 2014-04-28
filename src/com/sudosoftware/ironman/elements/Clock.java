@@ -13,6 +13,12 @@ import com.sudosoftware.ironman.shapes.Point3D;
 import com.sudosoftware.ironman.util.ColorPicker;
 
 public class Clock extends HUDElement {
+	// Clock values.
+	public static final float CLOCK_SIZE = 180.0f;
+	public static final float CLOCK_HOUR_RING_SIZE = 15.0f;
+	public static final float CLOCK_MINUTE_RING_SIZE = 10.0f;
+	public static final float CLOCK_SECOND_RING_SIZE = 5.0f;
+	public static final float CLOCK_RING_SPACER_SIZE = 5.0f;
 	public static final int CLOCK_DISC_RESOLUTION = 300;
 	public static final int DISC_DISPLAY_MODE = GL10.GL_TRIANGLE_FAN;
 
@@ -48,9 +54,9 @@ public class Clock extends HUDElement {
 		glDateText = GLTextFactory.getInstance().createGLText();
 		glDateText.load("OxygenMono-Regular.ttf", 35, 2, 2);
 		glMonthText = GLTextFactory.getInstance().createGLText();
-		glMonthText.load("Roboto-Regular.ttf", 60, 2, 2);
+		glMonthText.load("Roboto-Regular.ttf", 50, 2, 2);
 		glTimeText = GLTextFactory.getInstance().createGLText();
-		glTimeText.load("Roboto-Regular.ttf", 65, 2, 2);
+		glTimeText.load("Roboto-Regular.ttf", 25, 2, 2);
 	}
 
 	public void update() {
@@ -69,30 +75,39 @@ public class Clock extends HUDElement {
 		// Flip the clock so that it winds clock-wise.
 		gl.glScalef(scale, -scale, 1.0f);
 
+		// Hold our current ring size.
+		float ringSize = CLOCK_SIZE;
+
 		// Draw the clock hands from the outer circle to the inner (seconds, then minutes, then hours).
 		// Seconds hand.
 		ColorPicker.setGLColor(gl, ColorPicker.GRAY25, 0.125f);
-		Circle.drawCircle(gl, 200.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawCircle(gl, ringSize, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
-		Circle.drawArc(gl, 200.0f, 0.0f, (float)(datetime.get(Calendar.SECOND) * 360.0f) / 60.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawArc(gl, ringSize, 0.0f, (float)(datetime.get(Calendar.SECOND) * 360.0f) / 60.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
-		Circle.drawCircle(gl, 190.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawCircle(gl, ringSize - CLOCK_SECOND_RING_SIZE, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+
+		// Adjust the ring size.
+		ringSize = ringSize - CLOCK_SECOND_RING_SIZE - CLOCK_RING_SPACER_SIZE;
 
 		// Minutes hand.
 		ColorPicker.setGLColor(gl, ColorPicker.GRAY25, 0.125f);
-		Circle.drawCircle(gl, 185.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawCircle(gl, ringSize, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
-		Circle.drawArc(gl, 185.0f, 0.0f, (float)(datetime.get(Calendar.MINUTE) * 360.0f) / 60.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawArc(gl, ringSize, 0.0f, (float)(datetime.get(Calendar.MINUTE) * 360.0f) / 60.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
-		Circle.drawCircle(gl, 175.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawCircle(gl, ringSize - CLOCK_MINUTE_RING_SIZE, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+
+		// Adjust the ring size.
+		ringSize = ringSize - CLOCK_MINUTE_RING_SIZE - CLOCK_RING_SPACER_SIZE;
 
 		// Hours hand.
 		ColorPicker.setGLColor(gl, ColorPicker.GRAY25, 0.125f);
-		Circle.drawCircle(gl, 170.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawCircle(gl, ringSize, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
-		Circle.drawArc(gl, 170.0f, 0.0f, (float)(datetime.get(Calendar.HOUR) * 360.0f) / 12.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawArc(gl, ringSize, 0.0f, (float)(datetime.get(Calendar.HOUR) * 360.0f) / 12.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
-		Circle.drawCircle(gl, 155.0f, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
+		Circle.drawCircle(gl, ringSize - CLOCK_HOUR_RING_SIZE, CLOCK_DISC_RESOLUTION, DISC_DISPLAY_MODE);
 
 		// Draw some white lines at each hour mark.
 		gl.glLineWidth(5.0f);
@@ -101,7 +116,7 @@ public class Clock extends HUDElement {
 			float angle = (float)Math.toRadians((float)(i * 360.0f) / 12.0f);
 			BezierCurve.draw2PointCurve(gl,
 					new Point3D(0, 0, 0),
-					new Point3D(200 * (float)Math.cos(angle), 200 * (float)Math.sin(angle), 0),
+					new Point3D(CLOCK_SIZE * (float)Math.cos(angle), CLOCK_SIZE * (float)Math.sin(angle), 0),
 					GL10.GL_LINE_STRIP);
 		}
 		gl.glLineWidth(1.0f);
@@ -116,11 +131,12 @@ public class Clock extends HUDElement {
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		ColorPicker.setGLTextColor(glMonthText, ColorPicker.LIGHTBLUE, 0.5f);
+		ColorPicker.setGLTextColor(glMonthText, ColorPicker.LIGHTBLUE, 0.3f);
 		glMonthText.setScale(3.0f);
 		glMonthText.draw(monthFormatter.format(datetime.getTime()), -(GLTextFactory.getStringWidth(glMonthText, monthFormatter.format(datetime.getTime())) / 2.0f), -(glMonthText.getCharHeight() / 2.0f) + (glMonthText.getCharHeight() / 8.0f));
 		glMonthText.end();
 		ColorPicker.setGLTextColor(glTimeText, ColorPicker.CORAL, 1.0f);
+		glTimeText.setScale(2.5f);
 		glTimeText.draw(timeFormatter.format(datetime.getTime()), -(GLTextFactory.getStringWidth(glTimeText,timeFormatter.format(datetime.getTime())) / 2.0f), -15.0f);
 		glTimeText.end();
 		ColorPicker.setGLTextColor(glDateText, ColorPicker.CORAL, 1.0f);

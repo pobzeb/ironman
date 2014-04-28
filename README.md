@@ -18,12 +18,21 @@ Current Features:
  - Press the volume down key to capture the current image.
  - Displays current time and date.
  - Displays a horizon indicator to show pitch and roll.
+ - Displays current altitude.
+ - Displays horizontal scrolling compass.
+ - Displays current latitude and longitude.
 
 See ToDoList.md for upcoming features.
 
 ----------
  Updates:
 ----------
+
+04-27-2014:
+ - Added new Compass HUD element.
+ - Added new Location HUD element.
+ - Other minor tweaks to improve efficiency.
+ - Updated Clock HUD element to reduce size a little.
 
 04-24-2014:
  - Major work on Circle and Arc drawing methods.

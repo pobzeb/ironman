@@ -338,8 +338,10 @@ public class GLText {
       float len = 0.0f;                               // Working Length
       int strLen = text.length();                     // Get String Length (Characters)
       for ( int i = 0; i < strLen; i++ )  {           // For Each Character in String (Except Last
-         int c = (int)text.charAt( i ) - CHAR_START;  // Calculate Character Index (Offset by First Char in Font)
-         len += ( charWidths[c] * scaleX );           // Add Scaled Character Width to Total Length
+         try {
+	         int c = (int)text.charAt( i ) - CHAR_START;  // Calculate Character Index (Offset by First Char in Font)
+	         len += ( charWidths[c] * scaleX );           // Add Scaled Character Width to Total Length
+         } catch(Exception e) {}
       }
       len += ( strLen > 1 ? ( ( strLen - 1 ) * spaceX ) * scaleX : 0 );  // Add Space Length
       return len;                                     // Return Total Length

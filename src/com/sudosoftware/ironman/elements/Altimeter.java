@@ -40,6 +40,7 @@ public class Altimeter extends HUDElement {
 
 	@Override
 	public void init() {
+		// Get the location tracker.
 		locationTracker = SensorManagerFactory.getInstance().getLocationTracker();
 
 		// Set the formatter.
@@ -51,7 +52,6 @@ public class Altimeter extends HUDElement {
 		// Load the font.
 		glAltitudeText = GLTextFactory.getInstance().createGLText();
 		glAltitudeText.load("Roboto-Regular.ttf", 65, 2, 2);
-
 	}
 
 	@Override
@@ -100,13 +100,13 @@ public class Altimeter extends HUDElement {
 			new Point3D(740.0f, -50.0f, 0.0f), GL10.GL_LINE_STRIP);
 		gl.glLineWidth(1.0f);
 
-		// Draw the current date and time.
+		// Draw the current altitude.
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		glAltitudeText.setScale(1.0f);
 		ColorPicker.setGLTextColor(glAltitudeText, ColorPicker.CORAL, 1.0f);
-		String altitudeDisplay = "0.0";
+		String altitudeDisplay = "--.--";
 		try {
 			altitudeDisplay = altitudeFormat.format(altitude);
 		}
