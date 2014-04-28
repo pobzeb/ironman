@@ -146,8 +146,8 @@ public class Compass extends HUDElement implements SensorEventListener {
 		gl.glLineWidth(10.0f);
 		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
 		BezierCurve.draw2PointCurve(gl,
-			new Point3D(HUD_ELEMENT_LEFT_EDGE, 350.0f, 0.0f),
-			new Point3D(HUD_ELEMENT_RIGHT_EDGE, 350.0f, 0.0f), GL10.GL_LINE_STRIP);
+			new Point3D(-400.0f, 350.0f, 0.0f),
+			new Point3D(400.0f, 350.0f, 0.0f), GL10.GL_LINE_STRIP);
 		gl.glLineWidth(1.0f);
 
 		// Display the visible tick marks.
