@@ -15,7 +15,7 @@ Feel free to join in on this project. Let's see if we can't make it a reality.
 Currently using OpenGL 1.0 (because that's what I know at the moment) for all graphics.
 
 Current Features:
- - Tap the mode in the bottom right corner of the screen to toggle through
+ - Tap the mode in the bottom left corner of the screen to toggle through
    available modes. Tap anywhere else to select the mode or press the volume
    down key to select the mode.
  - Press the volume down key to take action on the current mode. For example,

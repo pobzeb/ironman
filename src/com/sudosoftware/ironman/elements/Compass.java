@@ -18,7 +18,7 @@ import com.sudosoftware.ironman.util.SensorManagerFactory;
 
 public class Compass extends HUDElement implements SensorEventListener {
 	// Constant for low pass filter.
-	public static final float FILTER_ALPHA = 0.0125f;
+	public static final float FILTER_ALPHA = 0.05f;
 
 	// Display values.
 	public static final float COMPASS_DIST_BETWEEN_TICKS = 22.5f;
