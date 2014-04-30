@@ -6,6 +6,7 @@ public enum ActivityMode {
 	CALENDAR_MODE(2, "Calendar"),
 	VOLUME_MODE(3, "Volume"),
 	SATELLITE_MODE(4, "Satellites"),
+	CAMERA_MODE(5, "Toggle Camera"),
 	;
 
 	public int mode;

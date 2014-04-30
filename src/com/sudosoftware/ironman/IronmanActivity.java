@@ -18,10 +18,12 @@ import android.opengl.GLU;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -36,6 +38,9 @@ import com.sudosoftware.ironman.elements.SatellitesLocked;
 import com.sudosoftware.ironman.elements.Speedometer;
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
+import com.sudosoftware.ironman.shapes.BezierCurve;
+import com.sudosoftware.ironman.shapes.Circle;
+import com.sudosoftware.ironman.shapes.Point3D;
 import com.sudosoftware.ironman.util.ActivityMode;
 import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
@@ -53,6 +58,9 @@ public class IronmanActivity extends Activity {
 	private GLSurfaceView glView;
 	private GLRenderer glRenderer;
 	private CameraView cameraView;
+
+	// Flag to determine if the camera preview is enabled.
+	private boolean cameraEnabled = true;
 
 	// Hold the current activity mode.
 	private ActivityMode currentMode = ActivityMode.findActivityMode(0);
@@ -75,18 +83,25 @@ public class IronmanActivity extends Activity {
 			SensorManagerFactory.getInstance().getLocationTracker().showSettingsAlert();
 		}
 
+		// Run the initialization.
+		initialize();
+	}
+
+	public void initialize() {
 		// Need to know if this loads.
 		boolean cameraLoaded = false;
-		try {
-			// Try to enable the camera mode.
-			cameraView = new CameraView(this);
-
-			// Add the camera view.
-			addContentView(cameraView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-			cameraLoaded = true;
-		}
-		catch (Exception e) {
-			toastMessage("Error loading camera view. Disabled for now.", Toast.LENGTH_SHORT);
+		if (cameraEnabled) {
+			try {
+				// Try to enable the camera mode.
+				cameraView = new CameraView(this);
+	
+				// Add the camera view.
+				addContentView(cameraView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+				cameraLoaded = true;
+			}
+			catch (Exception e) {
+				toastMessage("Error loading camera view. Disabled for now.", Toast.LENGTH_SHORT);
+			}
 		}
 
 		// Create the glView and set it to translucent mode if the camera loaded.
@@ -153,7 +168,7 @@ public class IronmanActivity extends Activity {
 			// Use volume down key to take action on the current mode. 
 			switch (currentMode) {
 			case PICTURE_MODE:
-				if (modeSelected) {
+				if (modeSelected && cameraEnabled) {
 					// Take a picture.
 					cameraView.takePicture();
 					return true;
@@ -161,7 +176,7 @@ public class IronmanActivity extends Activity {
 				break;
 
 			case VIDEO_MODE:
-				if (modeSelected) {
+				if (modeSelected && cameraEnabled) {
 					// Start or stop taking video.
 					toastMessage("Video mode not implemented yet.", Toast.LENGTH_SHORT);
 					return true;
@@ -179,6 +194,24 @@ public class IronmanActivity extends Activity {
 			case SATELLITE_MODE:
 				// Do nothing.
 				return true;
+
+			case CAMERA_MODE:
+				if (modeSelected) {
+					// Toggle the camera mode.
+					cameraEnabled = !cameraEnabled;
+
+					// Remove the views.
+					ViewGroup vg = (ViewGroup)glView.getParent();
+					Log.i(TAG, "Views: " + vg.getChildCount());
+					vg.removeView(cameraView);
+					vg.removeView(glView);
+
+					// Re-Initialize.
+					initialize();
+					return true;
+				}
+				break;
+
 			case VOLUME_MODE:
 				if (modeSelected) {
 					// Allow volume changing.
@@ -205,9 +238,42 @@ public class IronmanActivity extends Activity {
 			// Start mode change.
 			currentMode = ActivityMode.findActivityMode(currentMode.mode + 1);
 			if (currentMode == null) currentMode = ActivityMode.findActivityMode(0);
+
+			// If the camera is not enabled, skip picture and video mode.
+			while ((currentMode == ActivityMode.PICTURE_MODE || currentMode == ActivityMode.VIDEO_MODE) && !cameraEnabled) {
+				currentMode = ActivityMode.findActivityMode(currentMode.mode + 1);
+			}
+
+			// In selection process.
 			modeSelected = false;
 			modeChangeStarted = System.currentTimeMillis();
 			return true;
+		}
+		else if ((event.getX() > glRenderer.screenWidth - (140.0f * scaleBy) - 80.0f && event.getX() < glRenderer.screenWidth - (140.0f * scaleBy) + 80.0f) &&
+				 (event.getY() > glRenderer.screenHeight - (100.0f * scaleBy) - 80.0f && event.getY() < glRenderer.screenHeight - (100.0f * scaleBy) + 80.0f) &&
+				 event.getAction() == MotionEvent.ACTION_UP && currentMode == ActivityMode.PICTURE_MODE && cameraEnabled) {
+			if (modeSelected) {
+				// Take a picture.
+				cameraView.takePicture();
+				return true;
+			}
+			else {
+				modeSelected = true;
+				return true;
+			}
+		}
+		else if ((event.getX() > glRenderer.screenWidth - (140.0f * scaleBy) - 80.0f && event.getX() < glRenderer.screenWidth - (140.0f * scaleBy) + 80.0f) &&
+				 (event.getY() > glRenderer.screenHeight - (100.0f * scaleBy) - 80.0f && event.getY() < glRenderer.screenHeight - (100.0f * scaleBy) + 80.0f) &&
+				 event.getAction() == MotionEvent.ACTION_UP && currentMode == ActivityMode.VIDEO_MODE && cameraEnabled) {
+			if (modeSelected) {
+				// Start/stop video recording.
+				toastMessage("Video mode not implemented yet.", Toast.LENGTH_SHORT);
+				return true;
+			}
+			else {
+				modeSelected = true;
+				return true;
+			}
 		}
 		else {
 			// Turn off mode selection.
@@ -216,6 +282,17 @@ public class IronmanActivity extends Activity {
 				return true;
 			}
 		}
+
+		// Let the HUD elements try the touch event out.
+		boolean returnState = false;
+		for (HUDElement element : glRenderer.getHudElementList()) {
+			if (element.onTouchEvent(event)) {
+				returnState = true;
+			}
+		}
+
+		// Check to see if one of the HUD elements caught the touch event.
+		if (returnState) return true;
 
 		return super.onTouchEvent(event);
 	}
@@ -257,23 +334,27 @@ public class IronmanActivity extends Activity {
 			this.hudElements.add(element);
 		}
 
+		public List<HUDElement> getHudElementList() {
+			return new ArrayList<HUDElement>(this.hudElements);
+		}
+
 		public void onPause() {
 			// Pause the HUD elements.
-			for (HUDElement element : this.hudElements) {
+			for (HUDElement element : getHudElementList()) {
 				element.onPause();
 			}
 		}
 
 		public void onResume() {
 			// Resume the HUD elements.
-			for (HUDElement element : this.hudElements) {
+			for (HUDElement element : getHudElementList()) {
 				element.onResume();
 			}
 		}
 
 		public void onDestroy() {
 			// Destroy the HUD elements.
-			for (HUDElement element : this.hudElements) {
+			for (HUDElement element : getHudElementList()) {
 				element.onDestroy();
 			}
 		}
@@ -299,7 +380,7 @@ public class IronmanActivity extends Activity {
 			gl.glLoadIdentity();
 
 			// Update and draw the HUD elements.
-			for (HUDElement element : this.hudElements) {
+			for (HUDElement element : getHudElementList()) {
 				if (currentMode == ActivityMode.SATELLITE_MODE && !(element instanceof Horizon)) {
 					element.update();
 					element.render(gl);
@@ -342,6 +423,41 @@ public class IronmanActivity extends Activity {
 			gl.glDisable(GL10.GL_TEXTURE_2D);
 
 			gl.glPopMatrix();
+
+			if (cameraEnabled && (currentMode == ActivityMode.PICTURE_MODE || currentMode == ActivityMode.VIDEO_MODE)) {
+				gl.glPushMatrix();
+
+				// Draw a shutter button for snapping a picture or starting and stopping video recording.
+				gl.glTranslatef(screenWidth - (140.0f * getScale()), (100.0f * getScale()), 0.0f);
+				gl.glScalef(getScale(), getScale(), 0.0f);
+				ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
+				Circle.drawCircle(gl, 80.0f, 300, GL10.GL_TRIANGLE_FAN);
+				ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
+				Circle.drawCircle(gl, 75.0f, 300, GL10.GL_TRIANGLE_FAN);
+				ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
+				Circle.drawCircle(gl, 70.0f, 300, GL10.GL_TRIANGLE_FAN);
+				gl.glLineWidth(5.0f);
+				ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
+				for (float i = 35.0f; i >= 25.0f; i--) {
+					BezierCurve.draw2PointCurve(gl,
+						new Point3D(-15.0f, i, 0),
+						new Point3D( 15.0f, i, 0),
+						GL10.GL_LINE_STRIP);
+				}
+				for (float i = 25.0f; i >= -25.0f; i--) {
+					BezierCurve.draw2PointCurve(gl,
+						new Point3D(-40.0f, i, 0),
+						new Point3D( 40.0f, i, 0),
+						GL10.GL_LINE_STRIP);
+				}
+				ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
+				Circle.drawCircle(gl, 24.0f, 300, GL10.GL_TRIANGLE_FAN);
+				ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
+				Circle.drawCircle(gl, 20.0f, 300, GL10.GL_TRIANGLE_FAN);
+				gl.glLineWidth(1.0f);
+
+				gl.glPopMatrix();
+			}
 		}
 
 		public float getScale() {

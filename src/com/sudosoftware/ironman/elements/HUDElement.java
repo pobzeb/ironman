@@ -2,6 +2,8 @@ package com.sudosoftware.ironman.elements;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.view.MotionEvent;
+
 public abstract class HUDElement {
 	// Hud element position.
 	public int x, y;
@@ -36,6 +38,8 @@ public abstract class HUDElement {
 	public abstract void update();
 
 	public abstract void render(GL10 gl10);
+
+	public boolean onTouchEvent(MotionEvent event) { return false; }
 
 	public void onPause() {}
 
