@@ -12,7 +12,6 @@ import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
 import com.sudosoftware.ironman.shapes.Point3D;
-import com.sudosoftware.ironman.shapes.Triangle;
 import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.GPSTracker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
@@ -103,7 +102,7 @@ public class SatellitesLocked extends HUDElement {
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		glSatText.setScale(0.75f * scale);
+		glSatText.setScale(0.75f);
 		ColorPicker.setGLTextColor(glSatText, ColorPicker.NEONBLUE, 1.0f);
 		glSatText.draw("N", -(GLTextFactory.getStringWidth(glSatText, "N") / 2.0f), -(glSatText.getCharHeight() + 5.0f));
 		glSatText.end();
@@ -146,7 +145,7 @@ public class SatellitesLocked extends HUDElement {
 				gl.glEnable(GL10.GL_TEXTURE_2D);
 				gl.glEnable(GL10.GL_BLEND);
 				gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-				glSatText.setScale(0.25f * scale);
+				glSatText.setScale(0.25f);
 				ColorPicker.setGLTextColor(glSatText, ColorPicker.CORAL, 1.0f);
 				String satPosDisplay = "(--, --)";
 				try {

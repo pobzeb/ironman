@@ -167,7 +167,7 @@ public class Compass extends HUDElement implements SensorEventListener {
 			gl.glEnable(GL10.GL_TEXTURE_2D);
 			gl.glEnable(GL10.GL_BLEND);
 			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-			glBearingText.setScale(1.0f * scale);
+			glBearingText.setScale(1.0f);
 			ColorPicker.setGLTextColor(glBearingText, ColorPicker.CORAL, 1.0f);
 			String bearingDisplay = String.valueOf(tick);
 			try {
@@ -197,7 +197,7 @@ public class Compass extends HUDElement implements SensorEventListener {
 					bearingNotation = "W";
 					break;
 				}
-				glBearingText.setScale(3.0f * scale);
+				glBearingText.setScale(3.0f);
 				ColorPicker.setGLTextColor(glBearingText, ColorPicker.CORAL, 1.0f);
 				glBearingText.draw(bearingNotation, xLine + 10.0f, 335.0f);
 				glBearingText.end();
