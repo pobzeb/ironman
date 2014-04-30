@@ -26,11 +26,17 @@ public class Circle extends Shape {
 		int idx = 0;
 		// When using Triangle Fan or Line Loop mode, we need the first point to start in the center.
 		if (drawMode == GL10.GL_TRIANGLE_FAN || drawMode == GL10.GL_LINE_LOOP) {
-			segments += 1;
-			points = new Point3D[segments];
-			idx = 1;
-			// Drawing a full circle so set the extra point in the exact center.
-			points[0] = new Point3D(0.0f, 0.0f, 0.0f);
+			// Check to see if we are drawing a circle with forceUseCenter and LINE_LOOP.
+			if (Math.toDegrees(endAngle - startAngle) >= 360.0f && forceUseCenter && drawMode == GL10.GL_LINE_LOOP) {
+				// Don't add the center point.
+			}
+			else {
+				segments += 1;
+				points = new Point3D[segments];
+				idx = 1;
+				// Drawing a full circle so set the extra point in the exact center.
+				points[0] = new Point3D(0.0f, 0.0f, 0.0f);
+			}
 
 			if (!forceUseCenter) {
 				// This is an arc but we need it filled. Extra point should be between the

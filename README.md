@@ -25,12 +25,21 @@ Current Features:
  - Displays current altitude.
  - Displays horizontal scrolling compass.
  - Displays current latitude and longitude.
+ - Displays fixed satellites in a visual representation.
 
 See ToDoList.md for upcoming features.
 
 ----------
  Updates:
 ----------
+
+04-29-2014:
+ - Updates to add scaling to all HUD elements text.
+ - Added new Satellites HUD element to show fixed satellites.
+ - Added Speedometer HUD element.
+ - Updated GPSTracker to pick up new locations at a quicker rate.
+ - Added new Satellites activity mode.
+ - Updated circle drawing method to avoid center point with LINE_LOOPS.
 
 04-28-2014:
  - Updates to correct issues with camera crashing application on some devices.
@@ -66,4 +75,4 @@ See ToDoList.md for upcoming features.
  - Created a ColorPicker for quick color management.
  - Set application to use landscape mode and fullscreen (noTitle).
  - Added image capture capability with volume down key press.
- 
+

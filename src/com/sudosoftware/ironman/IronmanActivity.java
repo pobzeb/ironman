@@ -18,7 +18,6 @@ import android.opengl.GLU;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -33,6 +32,8 @@ import com.sudosoftware.ironman.elements.Compass;
 import com.sudosoftware.ironman.elements.HUDElement;
 import com.sudosoftware.ironman.elements.Horizon;
 import com.sudosoftware.ironman.elements.Location;
+import com.sudosoftware.ironman.elements.SatellitesLocked;
+import com.sudosoftware.ironman.elements.Speedometer;
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.util.ActivityMode;
@@ -175,6 +176,9 @@ public class IronmanActivity extends Activity {
 				}
 				break;
 
+			case SATELLITE_MODE:
+				// Do nothing.
+				return true;
 			case VOLUME_MODE:
 				if (modeSelected) {
 					// Allow volume changing.
@@ -294,14 +298,16 @@ public class IronmanActivity extends Activity {
 			gl.glMatrixMode(GL10.GL_MODELVIEW);
 			gl.glLoadIdentity();
 
-			// Update the HUD elements.
+			// Update and draw the HUD elements.
 			for (HUDElement element : this.hudElements) {
-				element.update();
-			}
-
-			// Draw the HUD elements.
-			for (HUDElement element : this.hudElements) {
-				element.render(gl);
+				if (currentMode == ActivityMode.SATELLITE_MODE && !(element instanceof Horizon)) {
+					element.update();
+					element.render(gl);
+				}
+				else if (currentMode != ActivityMode.SATELLITE_MODE && !(element instanceof SatellitesLocked)) {
+					element.update();
+					element.render(gl);
+				}
 			}
 
 			gl.glPushMatrix();
@@ -347,21 +353,30 @@ public class IronmanActivity extends Activity {
 			return scaleBy;
 		}
 
+		public void loadHUDList() {
+			// Determine scaling depending on screen size.
+			float scaleBy = getScale();
+
+			// Clear the list.
+			this.hudElements.clear();
+
+			// Add the HUD elements.
+			this.addHudElement(new Clock(this.screenWidth - (int)(220 * scaleBy), this.screenHeight - (int)(220 * scaleBy), scaleBy));
+			this.addHudElement(new Speedometer(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
+			this.addHudElement(new Altimeter(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
+			this.addHudElement(new Compass(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
+			this.addHudElement(new SatellitesLocked(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
+			this.addHudElement(new Horizon(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
+			this.addHudElement(new Location(this.screenWidth / 2, (int)(120 * scaleBy), scaleBy));
+//			this.addHudElement(new DemoShapes(this.screenWidth / 2, this.screenHeight / 2));
+		}
+
 		@Override
 		public void onSurfaceChanged(GL10 gl, int width, int height) {
 			this.screenWidth = width;
 			this.screenHeight = height;
 
-			// Determine scaling depending on screen size.
-			float scaleBy = getScale();
-
-			// Add the HUD elements.
-			this.addHudElement(new Clock(this.screenWidth - (int)(220 * scaleBy), this.screenHeight - (int)(220 * scaleBy), scaleBy));
-			this.addHudElement(new Altimeter(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new Compass(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new Horizon(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new Location(this.screenWidth / 2, (int)(120 * scaleBy), scaleBy));
-//			this.addHudElement(new DemoShapes(this.screenWidth / 2, this.screenHeight / 2));
+			loadHUDList();
 		}
 	}
 
