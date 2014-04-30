@@ -42,6 +42,7 @@ public class Compass extends HUDElement implements SensorEventListener {
 
 	// GL Text for display.
 	private GLText glBearingText;
+	private GLText glDegreesText;
 
 	public Compass() {
 		super();
@@ -77,7 +78,9 @@ public class Compass extends HUDElement implements SensorEventListener {
 
 		// Load the font.
 		glBearingText = GLTextFactory.getInstance().createGLText();
-		glBearingText.load("Roboto-Regular.ttf", 35, 2, 2);
+		glBearingText.load("Roboto-Regular.ttf", 95, 2, 2);
+		glDegreesText = GLTextFactory.getInstance().createGLText();
+		glDegreesText.load("Roboto-Regular.ttf", 35, 2, 2);
 	}
 
 	private void registerListeners() {
@@ -167,15 +170,15 @@ public class Compass extends HUDElement implements SensorEventListener {
 			gl.glEnable(GL10.GL_TEXTURE_2D);
 			gl.glEnable(GL10.GL_BLEND);
 			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-			glBearingText.setScale(1.0f);
-			ColorPicker.setGLTextColor(glBearingText, ColorPicker.CORAL, 1.0f);
+			glDegreesText.setScale(scale);
+			ColorPicker.setGLTextColor(glDegreesText, ColorPicker.CORAL, 1.0f);
 			String bearingDisplay = String.valueOf(tick);
 			try {
 				bearingDisplay = bearingFormat.format(tick);
 			}
 			catch (Exception e) {}
-			glBearingText.drawC(bearingDisplay, xLine, 475.0f);
-			glBearingText.end();
+			glDegreesText.drawC(bearingDisplay, xLine, 475.0f);
+			glDegreesText.end();
 
 			// Draw N, S, W or E.
 			if (tick % 90.0f == 0) {
@@ -197,9 +200,9 @@ public class Compass extends HUDElement implements SensorEventListener {
 					bearingNotation = "W";
 					break;
 				}
-				glBearingText.setScale(3.0f);
+				glBearingText.setScale(scale);
 				ColorPicker.setGLTextColor(glBearingText, ColorPicker.CORAL, 1.0f);
-				glBearingText.draw(bearingNotation, xLine + 10.0f, 335.0f);
+				glBearingText.draw(bearingNotation, xLine + 10.0f, 340.0f);
 				glBearingText.end();
 			}
 			gl.glDisable(GL10.GL_BLEND);

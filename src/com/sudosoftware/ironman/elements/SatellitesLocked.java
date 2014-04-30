@@ -25,6 +25,7 @@ public class SatellitesLocked extends HUDElement {
 
 	// GL Text for display.
 	private GLText glSatText;
+	private GLText glDirText;
 
 	public SatellitesLocked() {
 		super();
@@ -44,7 +45,9 @@ public class SatellitesLocked extends HUDElement {
 
 		// Load the font.
 		glSatText = GLTextFactory.getInstance().createGLText();
-		glSatText.load("Roboto-Regular.ttf", 65, 2, 2);
+		glSatText.load("Roboto-Regular.ttf", 20, 2, 2);
+		glDirText = GLTextFactory.getInstance().createGLText();
+		glDirText.load("Roboto-Regular.ttf", 45, 2, 2);
 	}
 
 	@Override
@@ -96,16 +99,16 @@ public class SatellitesLocked extends HUDElement {
 			new Point3D( 15.0f, 270.0f, 0.0f), GL10.GL_LINE_STRIP);
 		gl.glLineWidth(1.0f);
 
-		// Draw the position of the satellite.
+		// Draw a North indicator to show orientation for satellite positions.
 		gl.glPushMatrix();
 		gl.glTranslatef(0.0f, 280.0f, 0.0f);
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		glSatText.setScale(0.75f);
-		ColorPicker.setGLTextColor(glSatText, ColorPicker.NEONBLUE, 1.0f);
-		glSatText.draw("N", -(GLTextFactory.getStringWidth(glSatText, "N") / 2.0f), -(glSatText.getCharHeight() + 5.0f));
-		glSatText.end();
+		glDirText.setScale(scale);
+		ColorPicker.setGLTextColor(glDirText, ColorPicker.NEONBLUE, 1.0f);
+		glDirText.draw("N", -(GLTextFactory.getStringWidth(glDirText, "N") / 2.0f), -(glDirText.getCharHeight() + 5.0f));
+		glDirText.end();
 		gl.glDisable(GL10.GL_BLEND);
 		gl.glDisable(GL10.GL_TEXTURE_2D);
 		gl.glPopMatrix();
@@ -136,17 +139,11 @@ public class SatellitesLocked extends HUDElement {
 				gl.glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
 				gl.glScalef(scale, -scale, 1.0f);
 
-				// Adjust the angle again.
-//				angle = angle + (float)Math.toRadians(-90.0);
-
-				// Move to the point where this satellite is represented.
-//				gl.glTranslatef((r * (float)Math.cos(angle)) * -1.0f, r * (float)Math.sin(angle), 0.0f);
-
 				// Draw the position of the satellite.
 				gl.glEnable(GL10.GL_TEXTURE_2D);
 				gl.glEnable(GL10.GL_BLEND);
 				gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-				glSatText.setScale(0.25f);
+				glSatText.setScale(scale);
 				ColorPicker.setGLTextColor(glSatText, ColorPicker.CORAL, 1.0f);
 				String satPosDisplay = "(--, --)";
 				try {

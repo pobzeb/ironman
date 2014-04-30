@@ -181,10 +181,8 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 
 	@Override
 	public void onLocationChanged(Location location) {
-		Log.i(IronmanActivity.TAG, "Location Changed");
 		// Check the location.
 		if (location != null) {
-			Log.i(IronmanActivity.TAG, "Altitude: " + location.getAltitude() + ", Bearing: " + location.getBearing() + ", Lat: " + location.getLatitude() + ", Lon: " + location.getLongitude());
 			lastLocation = currentLocation;
 			currentLocation = location;
 			altitude = location.getAltitude();
@@ -210,7 +208,6 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 	public void onGpsStatusChanged(int event) {
 		switch (event) {
 		case android.location.GpsStatus.GPS_EVENT_STARTED:
-			Log.i(IronmanActivity.TAG, "GPS: Started.");
 			break;
 
 		case android.location.GpsStatus.GPS_EVENT_SATELLITE_STATUS:
@@ -224,11 +221,9 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 			break;
 
 		case android.location.GpsStatus.GPS_EVENT_FIRST_FIX:
-			Log.i(IronmanActivity.TAG, "GPS: First fix.");
 			break;
 
 		case android.location.GpsStatus.GPS_EVENT_STOPPED:
-			Log.i(IronmanActivity.TAG, "GPS: Stopped.");
 			break;
 		}
 	}

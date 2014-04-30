@@ -19,7 +19,6 @@ import android.opengl.GLU;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -420,7 +419,7 @@ public class IronmanActivity extends Activity {
 			gl.glEnable(GL10.GL_TEXTURE_2D);
 			gl.glEnable(GL10.GL_BLEND);
 			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-			glCurrentModeText.setScale(1.0f);
+			glCurrentModeText.setScale(getScale());
 			ColorPicker.setGLTextColor(glCurrentModeText, ColorPicker.CORAL, 1.0f);
 			if (!modeSelected) {
 				if ((System.currentTimeMillis() - modeChangeStarted) >= MODE_CHANGE_BLINK_RATE) {
@@ -500,7 +499,7 @@ public class IronmanActivity extends Activity {
 			this.addHudElement(new Compass(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
 			this.addHudElement(new SatellitesLocked(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
 			this.addHudElement(new Horizon(this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new Location(this.screenWidth / 2, (int)(120 * scaleBy), scaleBy));
+			this.addHudElement(new Location(this.screenWidth / 2, (int)(80 * scaleBy), scaleBy));
 //			this.addHudElement(new DemoShapes(this.screenWidth / 2, this.screenHeight / 2));
 		}
 

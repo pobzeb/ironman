@@ -29,9 +29,9 @@ public class Clock extends HUDElement {
 	private final SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
 
 	// GL Text for display.
-	private GLText glDateText;
 	private GLText glMonthText;
 	private GLText glTimeText;
+	private GLText glDateText;
 
 	public Clock() {
 		super();
@@ -51,12 +51,12 @@ public class Clock extends HUDElement {
 		this.datetime = Calendar.getInstance();
 
 		// Load the fonts.
+		glMonthText = GLTextFactory.getInstance().createGLText();
+		glMonthText.load("Roboto-Regular.ttf", 130, 2, 2);
+		glTimeText = GLTextFactory.getInstance().createGLText();
+		glTimeText.load("Roboto-Regular.ttf", 60, 2, 2);
 		glDateText = GLTextFactory.getInstance().createGLText();
 		glDateText.load("OxygenMono-Regular.ttf", 35, 2, 2);
-		glMonthText = GLTextFactory.getInstance().createGLText();
-		glMonthText.load("Roboto-Regular.ttf", 50, 2, 2);
-		glTimeText = GLTextFactory.getInstance().createGLText();
-		glTimeText.load("Roboto-Regular.ttf", 25, 2, 2);
 	}
 
 	public void update() {
@@ -132,15 +132,15 @@ public class Clock extends HUDElement {
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		ColorPicker.setGLTextColor(glMonthText, ColorPicker.LIGHTBLUE, 0.3f);
-		glMonthText.setScale(3.0f);
+		glMonthText.setScale(scale);
 		glMonthText.draw(monthFormatter.format(datetime.getTime()), -(GLTextFactory.getStringWidth(glMonthText, monthFormatter.format(datetime.getTime())) / 2.0f), -(glMonthText.getCharHeight() / 2.0f) + (glMonthText.getCharHeight() / 8.0f));
 		glMonthText.end();
 		ColorPicker.setGLTextColor(glTimeText, ColorPicker.CORAL, 1.0f);
-		glTimeText.setScale(2.5f);
+		glTimeText.setScale(scale);
 		glTimeText.draw(timeFormatter.format(datetime.getTime()), -(GLTextFactory.getStringWidth(glTimeText,timeFormatter.format(datetime.getTime())) / 2.0f), -15.0f);
 		glTimeText.end();
 		ColorPicker.setGLTextColor(glDateText, ColorPicker.CORAL, 1.0f);
-		glDateText.setScale(1.0f);
+		glDateText.setScale(scale);
 		glDateText.draw(dateFormatter.format(datetime.getTime()), -(GLTextFactory.getStringWidth(glDateText, dateFormatter.format(datetime.getTime())) / 2.0f), -((glDateText.getCharHeight() / 2.0f) + 35));
 		glDateText.end();
 		gl.glDisable(GL10.GL_BLEND);
