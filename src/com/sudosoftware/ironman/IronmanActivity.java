@@ -11,6 +11,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
@@ -47,12 +48,16 @@ import com.sudosoftware.ironman.util.SensorManagerFactory;
 
 public class IronmanActivity extends Activity {
 	public static final String TAG = IronmanActivity.class.getName();
+	public static final String IRONMAN_PREFS = "com.sudosoftware.ironman.PREFERENCES";
 
 	// Original Screen Size.
 	public static final float ZERO_SCALE_SCREEN_WIDTH = 1794.0f;
 
 	// Mode changing blink rate.
 	private static final long MODE_CHANGE_BLINK_RATE = 250; // 250 ms
+
+	// Preferences.
+	private SharedPreferences prefs;
 
 	// Surface and renderer.
 	private GLSurfaceView glView;
@@ -82,9 +87,6 @@ public class IronmanActivity extends Activity {
 		if (!SensorManagerFactory.getInstance().getLocationTracker().canGetLocation()) {
 			SensorManagerFactory.getInstance().getLocationTracker().showSettingsAlert();
 		}
-
-		// Run the initialization.
-		initialize();
 	}
 
 	public void initialize() {
@@ -128,6 +130,13 @@ public class IronmanActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
+
+		// Save some of our info.
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putBoolean("cameraEnabled", cameraEnabled);
+		editor.putInt("currentMode", currentMode.mode);
+		editor.commit();
+
 		glView.onPause();
 		glRenderer.onPause();
 		finish();
@@ -136,6 +145,15 @@ public class IronmanActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+
+		// Reload our saved preferences.
+		prefs = getSharedPreferences(IRONMAN_PREFS, Context.MODE_PRIVATE);
+		cameraEnabled = prefs.getBoolean("cameraEnabled", true);
+		currentMode = ActivityMode.findActivityMode(prefs.getInt("currentMode", 0));
+
+		// Run the initialization.
+		initialize();
+
 		glView.onResume();
 		glView.bringToFront();
 		glRenderer.onResume();
@@ -202,7 +220,6 @@ public class IronmanActivity extends Activity {
 
 					// Remove the views.
 					ViewGroup vg = (ViewGroup)glView.getParent();
-					Log.i(TAG, "Views: " + vg.getChildCount());
 					vg.removeView(cameraView);
 					vg.removeView(glView);
 

@@ -119,12 +119,12 @@ public class SatellitesLocked extends HUDElement {
 				float angle = (float)Math.toRadians(sat.getAzimuth());
 				float r = 290.0f - ((sat.getElevation() * 290.0f) / 90.0f);
 
+				// Move to the point where this satellite is represented.
+				gl.glTranslatef(r * (float)Math.cos(angle), r * (float)Math.sin(angle), 0.0f);
+
 				// Rotate and flip our reference so that 0 degrees is up.
 				gl.glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
 				gl.glScalef(scale, -scale, 1.0f);
-
-				// Move to the point where this satellite is represented.
-				gl.glTranslatef(r * (float)Math.cos(angle), r * (float)Math.sin(angle), 0.0f);
 
 				// Draw the satellite.
 				gl.glLineWidth(5.0f);
@@ -132,14 +132,15 @@ public class SatellitesLocked extends HUDElement {
 				Circle.drawCircle(gl, 10.0f, 200, GL10.GL_LINE_LOOP);
 				gl.glLineWidth(1.0f);
 
-				gl.glPopMatrix();
-				gl.glPushMatrix();
+				// Rotate and flip back so our text will be under our point.
+				gl.glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+				gl.glScalef(scale, -scale, 1.0f);
 
 				// Adjust the angle again.
-				angle = angle + (float)Math.toRadians(-90.0);
+//				angle = angle + (float)Math.toRadians(-90.0);
 
 				// Move to the point where this satellite is represented.
-				gl.glTranslatef((r * (float)Math.cos(angle)) * -1.0f, r * (float)Math.sin(angle), 0.0f);
+//				gl.glTranslatef((r * (float)Math.cos(angle)) * -1.0f, r * (float)Math.sin(angle), 0.0f);
 
 				// Draw the position of the satellite.
 				gl.glEnable(GL10.GL_TEXTURE_2D);
