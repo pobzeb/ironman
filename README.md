@@ -26,12 +26,18 @@ Current Features:
  - Displays horizontal scrolling compass.
  - Displays current latitude and longitude.
  - Displays fixed satellites in a visual representation.
+ - Can enable/disable camera preview.
 
 See ToDoList.md for upcoming features.
 
 ----------
  Updates:
 ----------
+
+04-30-2014:
+ - Added ability to disable/enable the camera.
+ - Added alternate method for taking pictures and starting/stopping video recording.
+ - Added ability to HUD elements to process touch events.
 
 04-29-2014:
  - Updates to add scaling to all HUD elements text.
