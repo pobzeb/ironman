@@ -64,16 +64,11 @@ public class Clock extends HUDElement {
 	}
 
 	public void render(GL10 gl) {
-		gl.glPushMatrix();
-
-		// Move to the element's location.
-		gl.glTranslatef(this.x, this.y, 0.0f);
-
 		// Rotate the clock so that zero degrees is pointing up.
+		// Then, flip it so that it winds clock-wise.
+		gl.glPushMatrix();
 		gl.glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
-
-		// Flip the clock so that it winds clock-wise.
-		gl.glScalef(scale, -scale, 1.0f);
+		gl.glScalef(1.0f, -1.0f, 1.0f);
 
 		// Hold our current ring size.
 		float ringSize = CLOCK_SIZE;
@@ -120,32 +115,25 @@ public class Clock extends HUDElement {
 					GL10.GL_LINE_STRIP);
 		}
 		gl.glLineWidth(1.0f);
-
-		// Flip back.
-		gl.glScalef(scale, -scale, 1.0f);
-
-		// Rotate our context back to original.
-		gl.glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+		gl.glPopMatrix();
 
 		// Draw the current date and time.
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		ColorPicker.setGLTextColor(glMonthText, ColorPicker.LIGHTBLUE, 0.3f);
-		glMonthText.setScale(scale);
+		glMonthText.setScale(1.0f);
 		glMonthText.draw(monthFormatter.format(datetime.getTime()), -(GLTextFactory.getStringWidth(glMonthText, monthFormatter.format(datetime.getTime())) / 2.0f), -(glMonthText.getCharHeight() / 2.0f) + (glMonthText.getCharHeight() / 8.0f));
 		glMonthText.end();
 		ColorPicker.setGLTextColor(glTimeText, ColorPicker.CORAL, 1.0f);
-		glTimeText.setScale(scale);
+		glTimeText.setScale(1.0f);
 		glTimeText.draw(timeFormatter.format(datetime.getTime()), -(GLTextFactory.getStringWidth(glTimeText,timeFormatter.format(datetime.getTime())) / 2.0f), -15.0f);
 		glTimeText.end();
 		ColorPicker.setGLTextColor(glDateText, ColorPicker.CORAL, 1.0f);
-		glDateText.setScale(scale);
+		glDateText.setScale(1.0f);
 		glDateText.draw(dateFormatter.format(datetime.getTime()), -(GLTextFactory.getStringWidth(glDateText, dateFormatter.format(datetime.getTime())) / 2.0f), -((glDateText.getCharHeight() / 2.0f) + 35));
 		glDateText.end();
 		gl.glDisable(GL10.GL_BLEND);
 		gl.glDisable(GL10.GL_TEXTURE_2D);
-
-		gl.glPopMatrix();
 	}
 }

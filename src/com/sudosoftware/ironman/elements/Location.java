@@ -7,7 +7,6 @@ import javax.microedition.khronos.opengles.GL10;
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.util.ColorPicker;
-import com.sudosoftware.ironman.util.GPSTracker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
 public class Location extends HUDElement {
@@ -16,9 +15,6 @@ public class Location extends HUDElement {
 
 	// Show number of satellites used for location.
 	private int satelliteCount = 0;
-
-	// Hold the location info.
-	private GPSTracker locationTracker;
 
 	// Set the lat and long number formatter.
 	private NumberFormat latLongFormat;
@@ -41,9 +37,6 @@ public class Location extends HUDElement {
 
 	@Override
 	public void init() {
-		// Get the location tracker.
-		locationTracker = SensorManagerFactory.getInstance().getLocationTracker();
-
 		// Set the formatter.
 		latLongFormat = NumberFormat.getInstance();
 		latLongFormat.setMaximumFractionDigits(4);
@@ -59,35 +52,25 @@ public class Location extends HUDElement {
 
 	@Override
 	public void update() {
-		if (locationTracker.canGetLocation()) {
-			// Get the current lat and long.
-			latitude = (float)locationTracker.getLatitude();
-			longitude = (float)locationTracker.getLongitude();
-			satelliteCount = locationTracker.getSatelliteCount();
-		}
+		// Get the current lat, long and satellite count.
+		latitude = (float)SensorManagerFactory.getInstance().getLatitude();
+		longitude = (float)SensorManagerFactory.getInstance().getLongitude();
+		satelliteCount = SensorManagerFactory.getInstance().getSatelliteCount();
 	}
 
 	@Override
 	public void render(GL10 gl) {
-		gl.glPushMatrix();
-
-		// Move to the element's location.
-		gl.glTranslatef(this.x, this.y, 0.0f);
-
-		// Scale the element.
-		gl.glScalef(scale, scale, 1.0f);
-
 		// Draw the lat and long coordinates.
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		if (satelliteCount == 0) {
-			glInfoText.setScale(scale);
+			glInfoText.setScale(1.0f);
 			ColorPicker.setGLTextColor(glInfoText, ColorPicker.CORAL, 1.0f);
 			glInfoText.drawC("Showing last known location", 0.0f, 50.0f);
 			glInfoText.end();
 		}
-		glLatLongText.setScale(scale);
+		glLatLongText.setScale(1.0f);
 		ColorPicker.setGLTextColor(glLatLongText, ColorPicker.CORAL, 1.0f);
 		String latLongDisplay = "--.--, --.--";
 		try {
@@ -96,7 +79,7 @@ public class Location extends HUDElement {
 		catch (Exception e) {}
 		glLatLongText.drawC(latLongDisplay, 0.0f, 0.0f);
 		glLatLongText.end();
-		glInfoText.setScale(scale);
+		glInfoText.setScale(1.0f);
 		ColorPicker.setGLTextColor(glInfoText, ColorPicker.CORAL, 1.0f);
 		String satCountDisplay = "";
 		try {
@@ -110,20 +93,5 @@ public class Location extends HUDElement {
 		glInfoText.end();
 		gl.glDisable(GL10.GL_BLEND);
 		gl.glDisable(GL10.GL_TEXTURE_2D);
-
-		gl.glPopMatrix();
-	}
-
-	@Override
-	public void onPause() {
-		locationTracker.onPause();
-	}
-
-	@Override
-	public void onResume() {}
-
-	@Override
-	public void onDestroy() {
-		locationTracker.onPause();
 	}
 }

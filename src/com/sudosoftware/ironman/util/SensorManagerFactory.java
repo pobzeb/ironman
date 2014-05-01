@@ -1,24 +1,90 @@
 package com.sudosoftware.ironman.util;
 
-import android.content.Context;
-import android.hardware.SensorManager;
+import java.util.List;
 
-public class SensorManagerFactory {
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.location.GpsSatellite;
+import android.location.Location;
+
+public class SensorManagerFactory implements SensorEventListener {
+	// Constant for low pass filter to help smooth the accel and mag data.
+	public static final float FILTER_ALPHA = 0.0125f;
+
+	// Hold the application context.
 	private Context context;
-	private SensorManager sensorManager;
+
+	// Hold the location tracker.
 	private GPSTracker locationTracker;
 
+	// Hold the sensor info.
+	private SensorManager sensorManager;
+	private Sensor accelerometer;
+	private Sensor magnetometer;
+	private float[] magData;
+	private float[] accelData;
+
+	// Monitor current compassBearing, roll, pitch and yaw.
+	private float compassBearing, roll, pitch, yaw;
+
+	// Singleton instance.
 	private static SensorManagerFactory instance = null;
 	private static Object lock = new Object();
 
 	private SensorManagerFactory(Context context) {
+		// Save the context.
 		this.context = context;
 
-		// Get the sensor manager.
-		sensorManager = (SensorManager)this.context.getSystemService(Context.SENSOR_SERVICE);
+		// Initialize the sensor manager.
+		initSensor();
 
-		// Get the location tracker.
+		// Initialize the location tracker.
+		initLocationTracker();
+	}
+
+	private void initLocationTracker() {
+		// Get the location tracker and initialize it.
 		locationTracker = new GPSTracker(this.context);
+	}
+
+	private void initSensor() {
+		// Get the sensor manager and initialize it.
+		sensorManager = (SensorManager)this.context.getSystemService(Context.SENSOR_SERVICE);
+		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		registerListeners();
+	}
+
+	private void registerListeners() {
+		sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+		sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);
+	}
+
+	private void recalculateAccelerometer(SensorEvent event) {
+		// Initialize the accelerometer data holder with the event.
+		if (accelData == null)
+			accelData = new float[3];
+		accelData = lowPassFilter(event.values.clone(), accelData);
+	}
+
+	private void recalculateMagnetometer(SensorEvent event) {
+		// Initialize the magnetometer data holder with the event.
+		if (magData == null)
+			magData = new float[3];
+		magData = lowPassFilter(event.values.clone(), magData);
+	}
+
+	private float[] lowPassFilter(float[] input, float[] output) {
+		if (output == null) return input;
+
+		for (int i = 0; i < input.length; i++) {
+			output[i] = output[i] + FILTER_ALPHA * (input[i] - output[i]);
+		}
+
+		return output;
 	}
 
 	public static SensorManagerFactory getInstance(Context context) {
@@ -37,11 +103,166 @@ public class SensorManagerFactory {
 		return instance;
 	}
 
-	public SensorManager getSensorManager() {
-		return sensorManager;
+	/**
+	 * Get the current compass bearing in degrees.
+	 * 
+	 * @return The compass bearing
+	 */
+	public float getCompassBearing() {
+		return compassBearing;
 	}
 
-	public GPSTracker getLocationTracker() {
-		return locationTracker;
+	/**
+	 * Get the current roll of the device in radians.
+	 * 
+	 * @return The roll of the device
+	 */
+	public float getRoll() {
+		return roll;
 	}
+
+	/**
+	 * Get the current pitch of the device in radians.
+	 * 
+	 * @return The pitch of the device
+	 */
+	public float getPitch() {
+		return pitch;
+	}
+
+	/**
+	 * Get the current yaw of the device in radians.
+	 * 
+	 * @return The yaw of the device
+	 */
+	public float getYaw() {
+		return yaw;
+	}
+
+	/**
+	 * Get the current Location or last known Location
+	 * if we don't have a location lock yet.
+	 * 
+	 * @return The current or last known Location
+	 */
+	public Location getLocation() {
+		return locationTracker.getLocation();
+	}
+
+	/**
+	 * Get a list of currently used GpsSatellite.
+	 * 
+	 * @return List of current used GpsSatellite
+	 */
+	public List<GpsSatellite> getSatellites() {
+		return locationTracker.getSatellites();
+	}
+
+	/**
+	 * Get the currently used satellite count.
+	 * 
+	 * @return The number of current used satellites
+	 */
+	public int getSatelliteCount() {
+		return locationTracker.getSatelliteCount();
+	}
+
+	/**
+	 * Get the current altitude for the device in meters.
+	 * 
+	 * @return The current altitude
+	 */
+	public double getAltitude() {
+		return locationTracker.getAltitude();
+	}
+
+	/**
+	 * Get the current bearing from the GPS in degrees.
+	 * 
+	 * @return The current GPS bearing
+	 */
+	public double getBearing() {
+		return locationTracker.getBearing();
+	}
+
+	/**
+	 * Get the current latitude.
+	 * 
+	 * @return The current latitude
+	 */
+	public double getLatitude() {
+		return locationTracker.getLatitude();
+	}
+
+	/**
+	 * Get the current longitude.
+	 * 
+	 * @return The current longitude
+	 */
+	public double getLongitude() {
+		return locationTracker.getLongitude();
+	}
+
+	/**
+	 * Get the current speed in meters per second.
+	 * 
+	 * @return The current speed
+	 */
+	public double getSpeed() {
+		return locationTracker.getSpeed();
+	}
+
+	public void clearGPSCache() {
+		locationTracker.clearGPSCache();
+	}
+
+	public void onPause() {
+		sensorManager.unregisterListener(this);
+		locationTracker.onPause();
+	}
+
+	public void onResume() {
+		registerListeners();
+	}
+
+	public void onDestroy() {
+		sensorManager.unregisterListener(this);
+		locationTracker.onPause();
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+			recalculateAccelerometer(event);
+		}
+		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+			recalculateMagnetometer(event);
+		}
+
+		// Make sure we have both mag and accel data.
+		if (magData != null && accelData != null) {
+			float[] r = new float[9];
+			float[] i = new float[9];
+			if (SensorManager.getRotationMatrix(r, i, accelData, magData)) {
+				// Translate the orientation data.
+				float[] orientation = new float[3];
+				SensorManager.getOrientation(r, orientation);
+
+				// Get the current compass bearing.
+				compassBearing = (float)((Math.toDegrees(orientation[0]) + 450.0f) % 360.0f);
+
+				// Get roll, pitch and yaw.
+				yaw = (float)Math.toDegrees(orientation[0]);
+				roll = (float)Math.toDegrees(orientation[1]);
+				pitch = (float)Math.toDegrees(orientation[2]);
+
+				// We need to adjust the roll if it passes 90 or -90.
+				if (roll > 90.0f) roll = -90.0f;
+				else if (roll < -90.0f) roll = 90.0f;
+			}
+		}
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 }

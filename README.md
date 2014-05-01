@@ -43,6 +43,9 @@ See ToDoList.md for upcoming features.
  - Added ability to HUD elements to process touch events.
  - Fixed satellite display to better match up coordinates with satellite points.
  - Added preference saving for camera mode and current activity mode.
+ - Moved GPS and Sensor listeners and receivers into the SensorManagerFactory.
+ - Updated SatellitesLocked HUD element to rotate with current compass bearing.
+ - Added color coding to satellite points to indicate signal strength.
 
 04-29-2014:
  - Updates to add scaling to all HUD elements text.

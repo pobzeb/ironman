@@ -24,7 +24,7 @@ import com.sudosoftware.ironman.IronmanActivity;
 public class GPSTracker extends Service implements LocationListener, android.location.GpsStatus.Listener {
 	// Frequency of location updates.
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 0 meters.
-	private static final long MIN_TIME_BETWEEN_UPDATES = 3000; // 3 seconds.
+	private static final long MIN_TIME_BETWEEN_UPDATES = 2000; // 2 seconds.
 
 	// Activity context.
 	private final Context context;
@@ -46,7 +46,7 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 	private Location currentLocation, lastLocation;
 
 	// Values to keep track of.
-	private double altitude = 0.0, bearing = 0.0, latitude = 0.0, longitude = 0.0, speed = 0.0;
+	private double altitude, bearing, latitude, longitude, speed;
 
 	public GPSTracker(Context context) {
 		this.context = context;
@@ -79,18 +79,22 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 		}
 	}
 
+	public void onPause() {
+		if (locationManager != null) {
+			locationManager.removeUpdates(GPSTracker.this);
+		}
+	}
+
 	public Location getLocation() {
 		if (locationManager != null) {
 			return locationManager.getLastKnownLocation(bestProvider);
 		}
 
-		return null;
+		return currentLocation;
 	}
 
-	public void onPause() {
-		if (locationManager != null) {
-			locationManager.removeUpdates(GPSTracker.this);
-		}
+	public Location getLastLocation() {
+		return lastLocation;
 	}
 
 	public List<GpsSatellite> getSatellites() {
@@ -144,14 +148,8 @@ public class GPSTracker extends Service implements LocationListener, android.loc
 		return speed;
 	}
 
-	public double getSpeedOverDistance() {
-		if (lastLocation != null && currentLocation != null) {
-			float distance = lastLocation.distanceTo(currentLocation);
-			float time = lastLocation.getTime() - currentLocation.getTime();
-			return distance / time;
-		}
-
-		return 0.0;
+	public void clearGPSCache() {
+		locationManager.sendExtraCommand(LocationManager.GPS_PROVIDER, "delete_aiding_data", null);
 	}
 
 	public boolean canGetLocation() {

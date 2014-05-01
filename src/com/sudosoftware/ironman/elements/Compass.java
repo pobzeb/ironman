@@ -4,11 +4,6 @@ import java.text.NumberFormat;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.shapes.BezierCurve;
@@ -16,26 +11,15 @@ import com.sudosoftware.ironman.shapes.Point3D;
 import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
-public class Compass extends HUDElement implements SensorEventListener {
-	// Constant for low pass filter.
-	public static final float FILTER_ALPHA = 0.05f;
-
+public class Compass extends HUDElement {
 	// Display values.
 	public static final float COMPASS_DIST_BETWEEN_TICKS = 22.5f;
 	public static final float SCREEN_DIST_BETWEEN_TICKS = 160.0f;
 	public static final float HUD_ELEMENT_LEFT_EDGE = -390.0f;
 	public static final float HUD_ELEMENT_RIGHT_EDGE = 380.0f;
 
-	// Monitor current bearing.
-	private float bearing;
+	// Hold our compass tick points.
 	private float[] degrees;
-
-	// Hold the sensor info.
-	private SensorManager sensorManager;
-	private Sensor accelerometer;
-	private Sensor magnetometer;
-	private float[] magData;
-	private float[] accelData;
 
 	// Set the bearing number formatter.
 	private NumberFormat bearingFormat;
@@ -58,11 +42,6 @@ public class Compass extends HUDElement implements SensorEventListener {
 
 	@Override
 	public void init() {
-		sensorManager = SensorManagerFactory.getInstance().getSensorManager();
-		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		registerListeners();
-
 		// Initialize the points in our degrees array.
 		int idx = 0;
 		degrees = new float[16];
@@ -83,50 +62,16 @@ public class Compass extends HUDElement implements SensorEventListener {
 		glDegreesText.load("Roboto-Regular.ttf", 35, 2, 2);
 	}
 
-	private void registerListeners() {
-		sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-		sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
-	}
-
 	@Override
 	public void update() {}
 
-	private void recalculateAccelerometer(SensorEvent event) {
-		// Initialize the accelerometer data holder with the event.
-		if (accelData == null)
-			accelData = new float[3];
-		accelData = lowPassFilter(event.values.clone(), accelData);
-	}
-
-	private void recalculateMagnetometer(SensorEvent event) {
-		// Initialize the magnetometer data holder with the event.
-		if (magData == null)
-			magData = new float[3];
-		magData = lowPassFilter(event.values.clone(), magData);
-	}
-
-	private float[] lowPassFilter(float[] input, float[] output) {
-		if (output == null) return input;
-
-		for (int i = 0; i < input.length; i++) {
-			output[i] = output[i] + FILTER_ALPHA * (input[i] - output[i]);
-		}
-
-		return output;
-	}
-
 	@Override
 	public void render(GL10 gl) {
-		gl.glPushMatrix();
-
-		// Move to the element's location.
-		gl.glTranslatef(this.x, this.y, 0.0f);
-
-		// Scale the element.
-		gl.glScalef(scale, scale, 1.0f);
-
 		// Draw the compass horizontally. This would fit nicely along the top
 		// of the horizon HUD element.
+
+		// Get our current bearing.
+		float bearing = SensorManagerFactory.getInstance().getCompassBearing();
 
 		// Calculate the positions and tick marks that need to be shown.
 		// -------------------------------------------------------------
@@ -170,7 +115,7 @@ public class Compass extends HUDElement implements SensorEventListener {
 			gl.glEnable(GL10.GL_TEXTURE_2D);
 			gl.glEnable(GL10.GL_BLEND);
 			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-			glDegreesText.setScale(scale);
+			glDegreesText.setScale(1.0f);
 			ColorPicker.setGLTextColor(glDegreesText, ColorPicker.CORAL, 1.0f);
 			String bearingDisplay = String.valueOf(tick);
 			try {
@@ -200,7 +145,7 @@ public class Compass extends HUDElement implements SensorEventListener {
 					bearingNotation = "W";
 					break;
 				}
-				glBearingText.setScale(scale);
+				glBearingText.setScale(1.0f);
 				ColorPicker.setGLTextColor(glBearingText, ColorPicker.CORAL, 1.0f);
 				glBearingText.draw(bearingNotation, xLine + 10.0f, 340.0f);
 				glBearingText.end();
@@ -208,49 +153,5 @@ public class Compass extends HUDElement implements SensorEventListener {
 			gl.glDisable(GL10.GL_BLEND);
 			gl.glDisable(GL10.GL_TEXTURE_2D);
 		}
-
-		gl.glPopMatrix();
 	}
-
-	@Override
-	public void onPause() {
-		sensorManager.unregisterListener(this);
-	}
-
-	@Override
-	public void onResume() {
-		registerListeners();
-	}
-
-	@Override
-	public void onDestroy() {
-		sensorManager.unregisterListener(this);
-	}
-
-	@Override
-	public void onSensorChanged(SensorEvent event) {
-		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-			recalculateAccelerometer(event);
-		}
-		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-			recalculateMagnetometer(event);
-		}
-
-		// Make sure we have both mag and accel data.
-		if (magData != null && accelData != null) {
-			float[] r = new float[9];
-			float[] i = new float[9];
-			if (SensorManager.getRotationMatrix(r, i, accelData, magData)) {
-				// Translate the orientation data.
-				float[] orientation = new float[3];
-				SensorManager.getOrientation(r, orientation);
-
-				// Get bearing.
-				bearing = (float)((Math.toDegrees(orientation[0]) + 450.0f) % 360.0f);
-			}
-		}
-	}
-
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 }

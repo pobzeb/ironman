@@ -81,11 +81,6 @@ public class IronmanActivity extends Activity {
 
 		// Initialize the sensor factory.
 		SensorManagerFactory.getInstance(this);
-
-		// Check the location service.
-		if (!SensorManagerFactory.getInstance().getLocationTracker().canGetLocation()) {
-			SensorManagerFactory.getInstance().getLocationTracker().showSettingsAlert();
-		}
 	}
 
 	public void initialize() {
@@ -138,7 +133,8 @@ public class IronmanActivity extends Activity {
 
 		glView.onPause();
 		glRenderer.onPause();
-		finish();
+		SensorManagerFactory.getInstance().onPause();
+//		finish();
 	}
 
 	@Override
@@ -153,6 +149,7 @@ public class IronmanActivity extends Activity {
 		// Run the initialization.
 		initialize();
 
+		SensorManagerFactory.getInstance().onResume();
 		glView.onResume();
 		glView.bringToFront();
 		glRenderer.onResume();
@@ -161,6 +158,7 @@ public class IronmanActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		glRenderer.onDestroy();
+		SensorManagerFactory.getInstance().onDestroy();
 		super.onDestroy();
 	}
 
@@ -396,14 +394,32 @@ public class IronmanActivity extends Activity {
 			gl.glLoadIdentity();
 
 			// Update and draw the HUD elements.
+			boolean renderElement = true;
 			for (HUDElement element : getHudElementList()) {
-				if (currentMode == ActivityMode.SATELLITE_MODE && !(element instanceof Horizon)) {
-					element.update();
-					element.render(gl);
+				// Default to true.
+				renderElement = true;
+
+				// Check to see if we can render this HUD element.
+				if ((currentMode == ActivityMode.SATELLITE_MODE && element instanceof Horizon) ||
+					(currentMode != ActivityMode.SATELLITE_MODE && element instanceof SatellitesLocked)) {
+					renderElement = false;
 				}
-				else if (currentMode != ActivityMode.SATELLITE_MODE && !(element instanceof SatellitesLocked)) {
+
+				// Check to see if we can render this HUD element.
+				if (renderElement) {
+					gl.glPushMatrix();
+
+					// Move to the element's location.
+					gl.glTranslatef(element.x, element.y, 0.0f);
+
+					// Scale the element.
+					gl.glScalef(getScale(), getScale(), 1.0f);
+
+					// Update and then render this HUD element.
 					element.update();
 					element.render(gl);
+
+					gl.glPopMatrix();
 				}
 			}
 
@@ -516,6 +532,7 @@ public class IronmanActivity extends Activity {
 		private Camera camera;
 		private SurfaceHolder mHolder;
 
+		@SuppressWarnings("deprecation")
 		public CameraView(Context context) {
 			super(context);
 			mHolder = getHolder();
