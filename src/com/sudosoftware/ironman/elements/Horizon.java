@@ -26,8 +26,12 @@ public class Horizon extends HUDElement {
 
 	@Override
 	public void update() {
+		// Get the roll and pitch.
 		roll = SensorManagerFactory.getInstance().getRoll();
 		pitch = SensorManagerFactory.getInstance().getPitch();
+
+		// We need to adjust the roll to keep it in the 0 to 360 range.
+		if (roll < 0.0f) roll = (roll + 360.0f) % 360.0f;
 	}
 
 	@Override
@@ -41,7 +45,7 @@ public class Horizon extends HUDElement {
 		// Rotate the disc to represent our current roll (flipped horizontally).
 		// We've placed angle zero pointing up to help with our
 		// pitch calculation below.
-		gl.glRotatef(-roll + 90, 0.0f, 0.0f, 1.0f);
+		gl.glRotatef(-roll + 90.0f, 0.0f, 0.0f, 1.0f);
 		gl.glScalef(1.0f, -1.0f, 1.0f);
 
 		// We need to calculate the start and end angle for our

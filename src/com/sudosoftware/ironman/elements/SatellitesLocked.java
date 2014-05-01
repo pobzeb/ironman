@@ -57,7 +57,7 @@ public class SatellitesLocked extends HUDElement {
 
 		// Rotate everything so that the satellites represented here are
 		// in their truest location.
-		gl.glRotatef(-bearing, 0.0f, 0.0f, 1.0f);
+		gl.glRotatef(bearing, 0.0f, 0.0f, 1.0f);
 
 		// Draw a disc to hold our satellite list.
 		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
@@ -146,12 +146,12 @@ public class SatellitesLocked extends HUDElement {
 					ColorPicker.setGLColor(gl, ColorPicker.LIMEGREEN, 0.25f);
 					rad++;
 				}
-				Circle.drawCircle(gl, rad, 200, GL10.GL_LINE_LOOP);
+				Circle.drawCircle(gl, rad, 200, GL10.GL_TRIANGLE_FAN);
 				gl.glLineWidth(1.0f);
 
 				// Flip and rotate back by the bearing amount so our text will be under our point.
 				gl.glScalef(1.0f, -1.0f, 1.0f);
-				gl.glRotatef(-90.0f + bearing, 0.0f, 0.0f, 1.0f);
+				gl.glRotatef(-90.0f - bearing, 0.0f, 0.0f, 1.0f);
 
 				// Draw the satellite id.
 				gl.glEnable(GL10.GL_TEXTURE_2D);

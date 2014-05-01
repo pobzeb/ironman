@@ -37,6 +37,10 @@ See ToDoList.md for upcoming features.
  Updates:
 ----------
 
+05-01-2014:
+ - Worked on horizon HUD element. Trying to get full roll and pitch effects.
+ - Updated satellite HUD element to rotate correctly. Filled sat indicators.
+
 04-30-2014:
  - Added ability to disable/enable the camera.
  - Added alternate method for taking pictures and starting/stopping video recording.

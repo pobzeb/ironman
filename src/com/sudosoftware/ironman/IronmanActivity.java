@@ -121,15 +121,20 @@ public class IronmanActivity extends Activity {
 		}
 	}
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-
+	public void savePreferences() {
 		// Save some of our info.
 		SharedPreferences.Editor editor = prefs.edit();
 		editor.putBoolean("cameraEnabled", cameraEnabled);
 		editor.putInt("currentMode", currentMode.mode);
 		editor.commit();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		// Save preferences.
+		savePreferences();
 
 		glView.onPause();
 		glRenderer.onPause();
@@ -236,6 +241,9 @@ public class IronmanActivity extends Activity {
 
 			// Select the current mode.
 			modeSelected = true;
+
+			// Save preferences.
+			savePreferences();
 			return true;
 		}
 
@@ -293,6 +301,9 @@ public class IronmanActivity extends Activity {
 			// Turn off mode selection.
 			if (!modeSelected) {
 				modeSelected = true;
+
+				// Save preferences.
+				savePreferences();
 				return true;
 			}
 		}

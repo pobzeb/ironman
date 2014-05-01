@@ -12,7 +12,7 @@ import android.location.Location;
 
 public class SensorManagerFactory implements SensorEventListener {
 	// Constant for low pass filter to help smooth the accel and mag data.
-	public static final float FILTER_ALPHA = 0.0125f;
+	public static final float FILTER_ALPHA = 0.0250f;
 
 	// Hold the application context.
 	private Context context;
@@ -113,7 +113,7 @@ public class SensorManagerFactory implements SensorEventListener {
 	}
 
 	/**
-	 * Get the current roll of the device in radians.
+	 * Get the current roll of the device in degrees.
 	 * 
 	 * @return The roll of the device
 	 */
@@ -122,7 +122,7 @@ public class SensorManagerFactory implements SensorEventListener {
 	}
 
 	/**
-	 * Get the current pitch of the device in radians.
+	 * Get the current pitch of the device in degrees.
 	 * 
 	 * @return The pitch of the device
 	 */
@@ -131,7 +131,7 @@ public class SensorManagerFactory implements SensorEventListener {
 	}
 
 	/**
-	 * Get the current yaw of the device in radians.
+	 * Get the current yaw of the device in degrees.
 	 * 
 	 * @return The yaw of the device
 	 */
@@ -255,10 +255,6 @@ public class SensorManagerFactory implements SensorEventListener {
 				yaw = (float)Math.toDegrees(orientation[0]);
 				roll = (float)Math.toDegrees(orientation[1]);
 				pitch = (float)Math.toDegrees(orientation[2]);
-
-				// We need to adjust the roll if it passes 90 or -90.
-				if (roll > 90.0f) roll = -90.0f;
-				else if (roll < -90.0f) roll = 90.0f;
 			}
 		}
 	}
