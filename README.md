@@ -31,8 +31,10 @@ Current Features:
    - Current activity mode.
 
 Screenshots:
- - <a href="http://tinyurl.com/pl5sk7o" target="_blank">Picture Mode</a>
- - <a href="http://tinyurl.com/kj3h3r9" target="_blank">Satellite Mode (Camera disabled)</a>
+ - <p>Picture Mode:</p>
+   <img src="http://tinyurl.com/pl5sk7o" />
+ - <p>Satellite Mode (Camera disabled)</p>
+   <img src="http://tinyurl.com/kj3h3r9" />
 
 See ToDoList.md for upcoming features.
 
