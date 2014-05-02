@@ -31,6 +31,10 @@ Current Features:
    - Current camera enabled/disabled mode.
    - Current activity mode.
 
+Screenshots:
+ - Picture Mode: http://tinyurl.com/pl5sk7o
+ - Satellite Mode (Camera disabled): http://tinyurl.com/kj3h3r9
+
 See ToDoList.md for upcoming features.
 
 ----------
