@@ -16,17 +16,16 @@ Currently using OpenGL 1.0 (because that's what I know at the moment) for all gr
 
 Current Features:
  - Tap the mode in the bottom left corner of the screen to toggle through
-   available modes. Tap anywhere else to select the mode or press the volume
-   down key to select the mode.
- - Press the volume down key to take action on the current mode. For example,
-   snap a photo in Picture mode.
+   available modes. Tap anywhere else to select the mode.
+ - Certain modes have available options accessible through on-screen or hard buttons.
+   - For example, snap a photo in Picture mode with the small camera button on the screen.
  - Displays current time and date.
  - Displays a horizon indicator to show pitch and roll.
  - Displays current altitude.
  - Displays horizontal scrolling compass.
  - Displays current latitude and longitude.
- - Displays fixed satellites in a visual representation.
- - Can enable/disable camera preview.
+ - Displays locked satellites in a visual representation.
+ - Options mode allows toggle of camera preview.
  - Preferences are saved:
    - Current camera enabled/disabled mode.
    - Current activity mode.
@@ -40,6 +39,10 @@ See ToDoList.md for upcoming features.
 ----------
  Updates:
 ----------
+
+05-02-2014:
+ - Added options HUD element view for configuring application options.
+ - Updated activity mode manager.
 
 05-01-2014:
  - Worked on horizon HUD element. Trying to get full roll and pitch effects.

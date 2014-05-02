@@ -4,6 +4,8 @@ import java.text.NumberFormat;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
+
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.shapes.BezierCurve;
@@ -28,16 +30,16 @@ public class Compass extends HUDElement {
 	private GLText glBearingText;
 	private GLText glDegreesText;
 
-	public Compass() {
-		super();
+	public Compass(Context context) {
+		super(context);
 	}
 
-	public Compass(int x, int y) {
-		super(x, y);
+	public Compass(Context context, int x, int y) {
+		super(context, x, y);
 	}
 
-	public Compass(int x, int y, float scale) {
-		super(x, y, scale);
+	public Compass(Context context, int x, int y, float scale) {
+		super(context, x, y, scale);
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
 import android.location.GpsSatellite;
 
 import com.sudosoftware.ironman.gltext.GLText;
@@ -23,16 +24,16 @@ public class SatellitesLocked extends HUDElement {
 	private GLText glSatText;
 	private GLText glDirText;
 
-	public SatellitesLocked() {
-		super();
+	public SatellitesLocked(Context context) {
+		super(context);
 	}
 
-	public SatellitesLocked(int x, int y) {
-		super(x, y);
+	public SatellitesLocked(Context context, int x, int y) {
+		super(context, x, y);
 	}
 
-	public SatellitesLocked(int x, int y, float scale) {
-		super(x, y, scale);
+	public SatellitesLocked(Context context, int x, int y, float scale) {
+		super(context, x, y, scale);
 	}
 
 	@Override

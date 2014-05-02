@@ -2,6 +2,8 @@ package com.sudosoftware.ironman.elements;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
+
 import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
 import com.sudosoftware.ironman.shapes.Point3D;
@@ -12,16 +14,16 @@ public class Horizon extends HUDElement {
 	// Monitor roll and pitch of the device.
 	private float roll, pitch;
 
-	public Horizon() {
-		super();
+	public Horizon(Context context) {
+		super(context);
 	}
 
-	public Horizon(int x, int y) {
-		super(x, y);
+	public Horizon(Context context, int x, int y) {
+		super(context, x, y);
 	}
 
-	public Horizon(int x, int y, float scale) {
-		super(x, y, scale);
+	public Horizon(Context context, int x, int y, float scale) {
+		super(context, x, y, scale);
 	}
 
 	@Override

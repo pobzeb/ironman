@@ -4,6 +4,8 @@ import java.text.NumberFormat;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
+
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.shapes.BezierCurve;
@@ -21,16 +23,16 @@ public class Speedometer extends HUDElement {
 	// GL Text for display.
 	private GLText glSpeedText;
 
-	public Speedometer() {
-		super();
+	public Speedometer(Context context) {
+		super(context);
 	}
 
-	public Speedometer(int x, int y) {
-		super(x, y);
+	public Speedometer(Context context, int x, int y) {
+		super(context, x, y);
 	}
 
-	public Speedometer(int x, int y, float scale) {
-		super(x, y, scale);
+	public Speedometer(Context context, int x, int y, float scale) {
+		super(context, x, y, scale);
 	}
 
 	@Override

@@ -5,6 +5,8 @@ import java.util.Calendar;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
+
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.shapes.BezierCurve;
@@ -33,16 +35,16 @@ public class Clock extends HUDElement {
 	private GLText glTimeText;
 	private GLText glDateText;
 
-	public Clock() {
-		super();
+	public Clock(Context context) {
+		super(context);
 	}
 
-	public Clock(int x, int y) {
-		super(x, y);
+	public Clock(Context context, int x, int y) {
+		super(context, x, y);
 	}
 
-	public Clock(int x, int y, float scale) {
-		super(x, y, scale);
+	public Clock(Context context, int x, int y, float scale) {
+		super(context, x, y, scale);
 	}
 
 	@Override

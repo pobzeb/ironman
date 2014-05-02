@@ -4,6 +4,8 @@ import java.text.NumberFormat;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
+
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.shapes.BezierCurve;
@@ -22,16 +24,16 @@ public class Altimeter extends HUDElement {
 	// GL Text for display.
 	private GLText glAltitudeText;
 
-	public Altimeter() {
-		super();
+	public Altimeter(Context context) {
+		super(context);
 	}
 
-	public Altimeter(int x, int y) {
-		super(x, y);
+	public Altimeter(Context context, int x, int y) {
+		super(context, x, y);
 	}
 
-	public Altimeter(int x, int y, float scale) {
-		super(x, y, scale);
+	public Altimeter(Context context, int x, int y, float scale) {
+		super(context, x, y, scale);
 	}
 
 	@Override

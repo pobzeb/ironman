@@ -4,6 +4,8 @@ import java.text.NumberFormat;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
+
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.util.ColorPicker;
@@ -23,16 +25,16 @@ public class Location extends HUDElement {
 	private GLText glLatLongText;
 	private GLText glInfoText;
 
-	public Location() {
-		super();
+	public Location(Context context) {
+		super(context);
 	}
 
-	public Location(int x, int y) {
-		super(x, y);
+	public Location(Context context, int x, int y) {
+		super(context, x, y);
 	}
 
-	public Location(int x, int y, float scale) {
-		super(x, y, scale);
+	public Location(Context context, int x, int y, float scale) {
+		super(context, x, y, scale);
 	}
 
 	@Override
