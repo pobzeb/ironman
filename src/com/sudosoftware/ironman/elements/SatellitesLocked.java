@@ -116,38 +116,36 @@ public class SatellitesLocked extends HUDElement {
 				// Move to the point where this satellite is represented.
 				gl.glTranslatef(r * (float)Math.cos(angle), r * (float)Math.sin(angle), 0.0f);
 
-				// Draw the satellite color coded based on signal strength.
-				gl.glLineWidth(5.0f);
+				// Draw the satellite color coded and sized based on signal strength.
 				float rad = 5.0f;
 				if (sat.getSnr() <= 0.0f) {
 					ColorPicker.setGLColor(gl, ColorPicker.GRAY15, 0.25f);
 				}
 				if (sat.getSnr() > 0.0f) {
 					ColorPicker.setGLColor(gl, ColorPicker.FIREBRICK, 0.25f);
-					rad++;
+					rad+=1;
 				}
 				if (sat.getSnr() >= 5.0f) {
 					ColorPicker.setGLColor(gl, ColorPicker.COPPER, 0.25f);
-					rad++;
+					rad+=1;
 				}
 				if (sat.getSnr() >= 10.0f) {
 					ColorPicker.setGLColor(gl, ColorPicker.DARKGREEN, 0.25f);
-					rad++;
+					rad+=2;
 				}
 				if (sat.getSnr() >= 15.0f) {
 					ColorPicker.setGLColor(gl, ColorPicker.YELLOWGREEN, 0.25f);
-					rad++;
+					rad+=2;
 				}
 				if (sat.getSnr() >= 20.0f) {
 					ColorPicker.setGLColor(gl, ColorPicker.SEAGREEN, 0.25f);
-					rad++;
+					rad+=2;
 				}
 				if (sat.getSnr() >= 25.0f) {
 					ColorPicker.setGLColor(gl, ColorPicker.LIMEGREEN, 0.25f);
-					rad++;
+					rad+=3;
 				}
 				Circle.drawCircle(gl, rad, 200, GL10.GL_TRIANGLE_FAN);
-				gl.glLineWidth(1.0f);
 
 				// Flip and rotate back by the bearing amount so our text will be under our point.
 				gl.glScalef(1.0f, -1.0f, 1.0f);
