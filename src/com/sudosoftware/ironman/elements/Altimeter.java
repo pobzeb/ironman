@@ -68,7 +68,7 @@ public class Altimeter extends HUDElement {
 				new Point3D(400.0f, yLine, 0.0f),
 				new Point3D(100.0f, yLine, 0.0f), GL10.GL_LINE_STRIP);
 		}
-		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.0f);
+		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
 		Circle.drawCircle(gl, 335.0f, 500, GL10.GL_TRIANGLE_FAN);
 		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
 		BezierCurve.draw2PointCurve(gl,

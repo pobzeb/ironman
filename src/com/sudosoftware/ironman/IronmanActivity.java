@@ -50,7 +50,6 @@ import com.sudosoftware.ironman.util.SensorManagerFactory;
 public class IronmanActivity extends Activity {
 	public static final String TAG = IronmanActivity.class.getName();
 	public static final String IRONMAN_PREFS = "com.sudosoftware.ironman.PREFERENCES";
-	public static final boolean DEBUG = Boolean.TRUE;
 
 	// Original Screen Size.
 	public static final float ZERO_SCALE_SCREEN_WIDTH = 1794.0f;
@@ -65,6 +64,9 @@ public class IronmanActivity extends Activity {
 
 	// Flag to determine if the camera preview is enabled.
 	private boolean cameraEnabled = true;
+
+	// Flag to determine if the debug info is shown.
+	private boolean showDebugInfo = false;
 
 	// Hold the current activity mode.
 	private ActivityMode currentMode = ActivityMode.findActivityMode(0);
@@ -102,10 +104,8 @@ public class IronmanActivity extends Activity {
 
 		// Create the glView and set it to translucent mode if the camera loaded.
 		glView = new GLSurfaceView(this);
-		if (cameraLoaded) {
-			glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-			glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-		}
+		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+		glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
 		// Create the Renderer view and add it to the glView.
 		glRenderer = new GLRenderer(this);
@@ -132,6 +132,7 @@ public class IronmanActivity extends Activity {
 		// Reload our saved preferences.
 		prefs = getSharedPreferences(IRONMAN_PREFS, Context.MODE_PRIVATE);
 		cameraEnabled = prefs.getBoolean(GlobalOptions.CAMERA_PREVIEW_ENABLED, true);
+		showDebugInfo = prefs.getBoolean(GlobalOptions.SHOW_DEBUG_INFO, false);
 		currentMode = ActivityMode.findActivityMode(prefs.getInt(GlobalOptions.CURRENT_ACTIVITY_MODE, 0));
 		if (currentMode == null || !currentMode.enabled) nextMode();
 	}
@@ -274,7 +275,6 @@ public class IronmanActivity extends Activity {
 
 		// GL Text for display.
 		private GLText glCurrentModeText;
-		private GLText glDebugText;
 
 		public GLRenderer(Context context) {
 			super();
@@ -291,8 +291,6 @@ public class IronmanActivity extends Activity {
 			// Load the font.
 			glCurrentModeText = GLTextFactory.getInstance().createGLText();
 			glCurrentModeText.load("Roboto-Regular.ttf", 35, 2, 2);
-			glDebugText = GLTextFactory.getInstance().createGLText();
-			glDebugText.load("Roboto-Regular.ttf", 30, 2, 2);
 
 			// Start controllers.
 			frames = 0;
@@ -356,7 +354,7 @@ public class IronmanActivity extends Activity {
 			}
 
 			// Redraw background color
-			gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			gl.glClearColor(0.0f, 0.0f, 0.0f, 0.25f);
 			gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 			// Set the viewport.
@@ -470,17 +468,14 @@ public class IronmanActivity extends Activity {
 				frames = 0;
 				ticks = 0;
 			}
-			if (DEBUG) {
-				// Draw frames per second.
-				gl.glEnable(GL10.GL_TEXTURE_2D);
-				gl.glEnable(GL10.GL_BLEND);
-				gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-				glDebugText.setScale(getScale());
-				ColorPicker.setGLTextColor(glDebugText, ColorPicker.AQUAMARINE, 1.0f);
-				glDebugText.draw("FPS: " + fps, this.screenWidth - (GLTextFactory.getStringWidth(glDebugText, "FPS: " + fps) + 50.0f), 10.0f);
-				glDebugText.end();
-				gl.glDisable(GL10.GL_BLEND);
-				gl.glDisable(GL10.GL_TEXTURE_2D);
+
+			if (showDebugInfo) {
+				// Draw the debug block.
+				String[] fpsString = {
+					"FPS: " + fps,
+					"Battery: " + SensorManagerFactory.getInstance().getBatteryLevel(),
+				};
+				GLTextFactory.getInstance().debugTextBlock(gl, fpsString, this.screenWidth, this.screenHeight, ColorPicker.AQUAMARINE, 1.0f, getScale());
 			}
 		}
 

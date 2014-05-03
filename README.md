@@ -43,6 +43,9 @@ See ToDoList.md for upcoming features.
  Updates:
 ----------
 
+05-03-2014:
+ - Added debug option to turn on/off debug info.
+
 05-02-2014:
  - Added options HUD element view for configuring application options.
  - Updated activity mode manager.
