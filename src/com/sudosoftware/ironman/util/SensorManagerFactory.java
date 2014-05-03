@@ -3,12 +3,15 @@ package com.sudosoftware.ironman.util;
 import java.util.List;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.GpsSatellite;
 import android.location.Location;
+import android.os.BatteryManager;
 
 public class SensorManagerFactory implements SensorEventListener {
 	// Constant for low pass filter to help smooth the accel and mag data.
@@ -43,6 +46,11 @@ public class SensorManagerFactory implements SensorEventListener {
 
 		// Initialize the location tracker.
 		initLocationTracker();
+	}
+
+	private Intent getBatteryMonitor() {
+		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+		return this.context.registerReceiver(null, ifilter);
 	}
 
 	private void initLocationTracker() {
@@ -101,6 +109,42 @@ public class SensorManagerFactory implements SensorEventListener {
 
 	public static SensorManagerFactory getInstance() {
 		return instance;
+	}
+
+	/**
+	 * Get the battery status.
+	 * 
+	 * @return
+	 */
+	public int getBatteryStatus() {
+		return getBatteryMonitor().getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+	}
+
+	/**
+	 * Returns true if the battery is charging or full.
+	 */
+	public boolean isBatteryCharging() {
+		int status = getBatteryStatus();
+		return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+			   status == BatteryManager.BATTERY_STATUS_FULL;
+	}
+
+	/**
+	 * Get the battery level.
+	 * 
+	 * @return current battery level.
+	 */
+	public int getBatteryLevel() {
+		return getBatteryMonitor().getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+	}
+
+	/**
+	 * Get the battery level as a percent.
+	 * 
+	 * @return current battery level as a percent.
+	 */
+	public float getBatteryLevelPercent() {
+		return (getBatteryLevel() / (float)getBatteryMonitor().getIntExtra(BatteryManager.EXTRA_SCALE, -1)) * 100.0f;
 	}
 
 	/**

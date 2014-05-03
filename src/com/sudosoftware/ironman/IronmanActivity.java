@@ -28,6 +28,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.sudosoftware.ironman.elements.Altimeter;
+import com.sudosoftware.ironman.elements.Battery;
 import com.sudosoftware.ironman.elements.Clock;
 import com.sudosoftware.ironman.elements.Compass;
 import com.sudosoftware.ironman.elements.HUDElement;
@@ -49,6 +50,7 @@ import com.sudosoftware.ironman.util.SensorManagerFactory;
 public class IronmanActivity extends Activity {
 	public static final String TAG = IronmanActivity.class.getName();
 	public static final String IRONMAN_PREFS = "com.sudosoftware.ironman.PREFERENCES";
+	public static final boolean DEBUG = Boolean.TRUE;
 
 	// Original Screen Size.
 	public static final float ZERO_SCALE_SCREEN_WIDTH = 1794.0f;
@@ -167,7 +169,7 @@ public class IronmanActivity extends Activity {
 		glView.onPause();
 		glRenderer.onPause();
 		SensorManagerFactory.getInstance().onPause();
-//		finish();
+//		finish(); // Stops the application completely.
 	}
 
 	@Override
@@ -252,15 +254,27 @@ public class IronmanActivity extends Activity {
 	}
 
 	class GLRenderer implements GLSurfaceView.Renderer {
+		public static final double TARGET_FPS = 1000000000.0 / 60.0;
+
 		// List of HUD elements.
 		private List<HUDElement> hudElements = new ArrayList<HUDElement>();
 		private Context context;
+
+		// Render controllers.
+		public int fps = 0;
+		public int tps = 0;
+		public int frames;
+		public int ticks;
+		public double delta;
+		public long lastTime;
+		public long fpsTimer;
 
 		// Hold screen size.
 		private int screenWidth, screenHeight;
 
 		// GL Text for display.
 		private GLText glCurrentModeText;
+		private GLText glDebugText;
 
 		public GLRenderer(Context context) {
 			super();
@@ -277,6 +291,15 @@ public class IronmanActivity extends Activity {
 			// Load the font.
 			glCurrentModeText = GLTextFactory.getInstance().createGLText();
 			glCurrentModeText.load("Roboto-Regular.ttf", 35, 2, 2);
+			glDebugText = GLTextFactory.getInstance().createGLText();
+			glDebugText.load("Roboto-Regular.ttf", 30, 2, 2);
+
+			// Start controllers.
+			frames = 0;
+			ticks = 0;
+			delta = 0.0;
+			lastTime = System.nanoTime();
+			fpsTimer = System.currentTimeMillis();
 		}
 
 		public void addHudElement(HUDElement element) {
@@ -311,6 +334,27 @@ public class IronmanActivity extends Activity {
 
 		@Override
 		public void onDrawFrame(GL10 gl) {
+			long time = System.nanoTime();
+			delta += (time - lastTime) / TARGET_FPS;
+			lastTime = time;
+
+			// Update while we wait for our target fps.
+			while (delta >= 1) {
+				// Update the HUD elements.
+				for (HUDElement element : getHudElementList()) {
+					element.update();
+				}
+				ticks++;
+				delta -= 1;
+			}
+
+			// Sleep a moment.
+			try {
+				Thread.sleep(2);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
 			// Redraw background color
 			gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
@@ -329,7 +373,7 @@ public class IronmanActivity extends Activity {
 			gl.glMatrixMode(GL10.GL_MODELVIEW);
 			gl.glLoadIdentity();
 
-			// Update and draw the HUD elements.
+			// Draw the HUD elements.
 			boolean renderElement = true;
 			for (HUDElement element : getHudElementList()) {
 				// Default to true.
@@ -353,8 +397,7 @@ public class IronmanActivity extends Activity {
 					// Scale the element.
 					gl.glScalef(getScale(), getScale(), 1.0f);
 
-					// Update and then render this HUD element.
-					element.update();
+					// Render this HUD element.
 					element.render(gl);
 
 					gl.glPopMatrix();
@@ -416,6 +459,29 @@ public class IronmanActivity extends Activity {
 
 				gl.glPopMatrix();
 			}
+
+			frames++;
+
+			// Set the fps value.
+			if (System.currentTimeMillis() - fpsTimer > 1000) {
+				fpsTimer += 1000;
+				fps = frames;
+				tps = ticks;
+				frames = 0;
+				ticks = 0;
+			}
+			if (DEBUG) {
+				// Draw frames per second.
+				gl.glEnable(GL10.GL_TEXTURE_2D);
+				gl.glEnable(GL10.GL_BLEND);
+				gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+				glDebugText.setScale(getScale());
+				ColorPicker.setGLTextColor(glDebugText, ColorPicker.AQUAMARINE, 1.0f);
+				glDebugText.draw("FPS: " + fps, this.screenWidth - (GLTextFactory.getStringWidth(glDebugText, "FPS: " + fps) + 50.0f), 10.0f);
+				glDebugText.end();
+				gl.glDisable(GL10.GL_BLEND);
+				gl.glDisable(GL10.GL_TEXTURE_2D);
+			}
 		}
 
 		public float getScale() {
@@ -442,6 +508,7 @@ public class IronmanActivity extends Activity {
 			this.addHudElement(new SatellitesLocked(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
 			this.addHudElement(new Horizon(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
 			this.addHudElement(new Location(this.context, this.screenWidth / 2, (int)(80 * scaleBy), scaleBy));
+			this.addHudElement(new Battery(this.context, (int)(30 * scaleBy), (int)((this.screenHeight - 80) * scaleBy), scaleBy));
 //			this.addHudElement(new DemoShapes(this.context, this.screenWidth / 2, this.screenHeight / 2));
 
 			// Always add the options HUD last.

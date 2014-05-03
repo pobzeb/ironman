@@ -9,7 +9,7 @@ New Features List:
   - SMS
   - FB
 4. Create system status HUD elements:
-  - CPU, Memory, Battery, etc.
+  - CPU, Memory, etc.
 5. Create calendar and upcoming events HUD element
 6. Create currently playing/playlist HUD elements
 7. Create sound meter bar graph HUD element
@@ -29,3 +29,4 @@ Completed Features:
   - Altimeter (current altitude)
 6. Create speedometer HUD element.
 7. Create satellite HUD element to show fixed satellites.
+8. Create battery status HUD element to show current battery level.

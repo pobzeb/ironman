@@ -25,6 +25,7 @@ Current Features:
  - Displays horizontal scrolling compass.
  - Displays current latitude and longitude.
  - Displays locked satellites in a visual representation.
+ - Displays current battery status.
  - Options mode allows toggle of camera preview.
  - Preferences are saved:
    - Current camera enabled/disabled mode.
@@ -45,6 +46,8 @@ See ToDoList.md for upcoming features.
 05-02-2014:
  - Added options HUD element view for configuring application options.
  - Updated activity mode manager.
+ - Added battery status HUD element.
+ - Updated main render class to limit FPS to 60 max.
 
 05-01-2014:
  - Worked on horizon HUD element. Trying to get full roll and pitch effects.
