@@ -35,7 +35,7 @@ Screenshots:
  - <p>Picture Mode:</p>
    <img src="http://tinyurl.com/pl5sk7o" />
  - <p>Satellite Mode (Camera disabled)</p>
-   <img src="http://tinyurl.com/kj3h3r9" />
+   <img src="http://tinyurl.com/ldcrm6t" />
 
 See ToDoList.md for upcoming features.
 

@@ -508,7 +508,7 @@ public class IronmanActivity extends Activity {
 			this.addHudElement(new SatellitesLocked(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
 			this.addHudElement(new Horizon(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
 			this.addHudElement(new Location(this.context, this.screenWidth / 2, (int)(80 * scaleBy), scaleBy));
-			this.addHudElement(new Battery(this.context, (int)(30 * scaleBy), (int)((this.screenHeight - 80) * scaleBy), scaleBy));
+			this.addHudElement(new Battery(this.context, (int)(30 * scaleBy), (int)(this.screenHeight - (80 * scaleBy)), scaleBy));
 //			this.addHudElement(new DemoShapes(this.context, this.screenWidth / 2, this.screenHeight / 2));
 
 			// Always add the options HUD last.
