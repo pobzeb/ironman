@@ -1,24 +1,34 @@
 package com.sudosoftware.ironman.util;
 
+import com.sudosoftware.ironman.mode.CalendarMode;
+import com.sudosoftware.ironman.mode.FlightMode;
+import com.sudosoftware.ironman.mode.HUDMode;
+import com.sudosoftware.ironman.mode.OptionsMode;
+import com.sudosoftware.ironman.mode.PlaylistMode;
+import com.sudosoftware.ironman.mode.SatelliteMode;
+import com.sudosoftware.ironman.mode.SystemInfoMode;
+import com.sudosoftware.ironman.mode.WeatherMode;
+
 public enum ActivityMode {
-	PICTURE_MODE("Picture", Boolean.TRUE),
-	VIDEO_MODE("Video", Boolean.FALSE),
-	WEATHER_MODE("Weather", Boolean.FALSE),
-	SATELLITE_MODE("Satellites", Boolean.TRUE),
-	CALENDAR_MODE("Calendar", Boolean.FALSE),
-	PLAYLIST_MODE("Playlist", Boolean.FALSE),
-	SYSTEM_INFO_MODE("System Info", Boolean.FALSE),
-	OPTIONS_MODE("Options", Boolean.TRUE),
+	FLIGHT_MODE("Flight", new FlightMode(), Boolean.TRUE),
+	WEATHER_MODE("Weather", new WeatherMode(), Boolean.FALSE),
+	SATELLITE_MODE("Satellites", new SatelliteMode(), Boolean.TRUE),
+	CALENDAR_MODE("Calendar", new CalendarMode(), Boolean.FALSE),
+	PLAYLIST_MODE("Playlist", new PlaylistMode(), Boolean.FALSE),
+	SYSTEM_INFO_MODE("System Info", new SystemInfoMode(), Boolean.FALSE),
+	OPTIONS_MODE("Options", new OptionsMode(), Boolean.TRUE),
 	;
 
 	private static int modeIdx = 0;
-	public int mode;
+	public int id;
 	public String name;
+	public HUDMode mode;
 	public boolean enabled;
 
-	private ActivityMode(String name, boolean enabled) {
-		this.mode = nextIdx();
+	private ActivityMode(String name, HUDMode mode, boolean enabled) {
+		this.id = nextIdx();
 		this.name = name;
+		this.mode = mode;
 		this.enabled = enabled;
 	}
 
@@ -26,9 +36,9 @@ public enum ActivityMode {
 		return modeIdx++;
 	}
 
-	public static ActivityMode findActivityMode(int mode) {
+	public static ActivityMode findActivityMode(int id) {
 		for (ActivityMode activityMode : values()) {
-			if (activityMode.mode == mode) {
+			if (activityMode.id == id) {
 				return activityMode;
 			}
 		}

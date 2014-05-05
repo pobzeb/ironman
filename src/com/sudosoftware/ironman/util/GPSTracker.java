@@ -24,7 +24,7 @@ import com.sudosoftware.ironman.IronmanActivity;
 public class GPSTracker extends Service implements LocationListener, android.location.GpsStatus.Listener {
 	// Frequency of location updates.
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 0 meters.
-	private static final long MIN_TIME_BETWEEN_UPDATES = 2000; // 2 seconds.
+	private static final long MIN_TIME_BETWEEN_UPDATES = 3000; // 3 seconds.
 
 	// Activity context.
 	private final Context context;

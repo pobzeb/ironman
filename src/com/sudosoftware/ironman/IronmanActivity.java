@@ -27,18 +27,9 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.sudosoftware.ironman.elements.Altimeter;
-import com.sudosoftware.ironman.elements.Battery;
-import com.sudosoftware.ironman.elements.Clock;
-import com.sudosoftware.ironman.elements.Compass;
-import com.sudosoftware.ironman.elements.HUDElement;
-import com.sudosoftware.ironman.elements.Horizon;
-import com.sudosoftware.ironman.elements.Location;
-import com.sudosoftware.ironman.elements.Options;
-import com.sudosoftware.ironman.elements.SatellitesLocked;
-import com.sudosoftware.ironman.elements.Speedometer;
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
+import com.sudosoftware.ironman.mode.HUDMode;
 import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
 import com.sudosoftware.ironman.shapes.Point3D;
@@ -124,7 +115,7 @@ public class IronmanActivity extends Activity {
 	public void savePreferences() {
 		// Save some of our info.
 		SharedPreferences.Editor editor = prefs.edit();
-		editor.putInt(GlobalOptions.CURRENT_ACTIVITY_MODE, currentMode.mode);
+		editor.putInt(GlobalOptions.CURRENT_ACTIVITY_MODE, currentMode.id);
 		editor.commit();
 	}
 
@@ -143,14 +134,8 @@ public class IronmanActivity extends Activity {
 			currentMode = ActivityMode.findActivityMode(0);
 		}
 		else {
-			currentMode = ActivityMode.findActivityMode(currentMode.mode + 1);
+			currentMode = ActivityMode.findActivityMode(currentMode.id + 1);
 			if (currentMode == null) currentMode = ActivityMode.findActivityMode(0);
-	
-			// If the camera is not enabled, skip picture and video mode.
-			while ((currentMode == ActivityMode.PICTURE_MODE || currentMode == ActivityMode.VIDEO_MODE) && !cameraEnabled) {
-				// Get the next mode.
-				currentMode = ActivityMode.findActivityMode(currentMode.mode + 1);
-			}
 		}
 
 		// If the current mode is not enabled, try again.
@@ -170,7 +155,6 @@ public class IronmanActivity extends Activity {
 		glView.onPause();
 		glRenderer.onPause();
 		SensorManagerFactory.getInstance().onPause();
-//		finish(); // Stops the application completely.
 	}
 
 	@Override
@@ -191,6 +175,7 @@ public class IronmanActivity extends Activity {
 		glRenderer.onDestroy();
 		SensorManagerFactory.getInstance().onDestroy();
 		super.onDestroy();
+		finish(); // Stops the application completely.
 	}
 
 	@Override
@@ -212,39 +197,29 @@ public class IronmanActivity extends Activity {
 			}
 
 			// Touching the camera button.
-			if (cameraEnabled && (currentMode == ActivityMode.PICTURE_MODE || currentMode == ActivityMode.VIDEO_MODE)) {
-				if ((touchX > glRenderer.screenWidth - (140.0f * scaleBy) - 80.0f && touchX < glRenderer.screenWidth - (140.0f * scaleBy) + 80.0f) &&
-						 (touchY > glRenderer.screenHeight - (100.0f * scaleBy) - 80.0f && touchY < glRenderer.screenHeight - (100.0f * scaleBy) + 80.0f)) {
-					if (currentMode == ActivityMode.PICTURE_MODE) {
-						// Take a picture.
-						cameraView.takePicture();
-						return true;
-					}
-					else if (currentMode == ActivityMode.VIDEO_MODE) {
-						// Start/stop video recording.
-						toastMessage("Video mode not implemented yet.", Toast.LENGTH_SHORT);
-						return true;
-					}
-				}
+			if (cameraEnabled && currentMode != ActivityMode.OPTIONS_MODE &&
+				((touchX > glRenderer.screenWidth - (140.0f * scaleBy) - 80.0f && touchX < glRenderer.screenWidth - (140.0f * scaleBy) + 80.0f) &&
+				 (touchY > glRenderer.screenHeight - (100.0f * scaleBy) - 80.0f && touchY < glRenderer.screenHeight - (100.0f * scaleBy) + 80.0f))) {
+				// Take a picture.
+				cameraView.takePicture();
+				return true;
 			}
 		}
 
-		// Let the HUD elements try the touch event out.
-		for (HUDElement element : glRenderer.getHudElementList()) {
-			if (element.onTouchEvent(event)) {
-				// If we are in options mode, check to see if anything needs to happen now.
-				if (currentMode == ActivityMode.OPTIONS_MODE) {
-					// Load any changed preferences.
-					loadPreferences();
+		// Let the current HUD mode try the touch event out.
+		if (this.currentMode.mode.onTouchEvent(event)) {
+			// If we are in options mode, check to see if anything needs to happen now.
+			if (currentMode == ActivityMode.OPTIONS_MODE) {
+				// Load any changed preferences.
+				loadPreferences();
 
-					// Do a quick check for camera preference changes.
-					if (cameraView != null && cameraEnabled != cameraView.isVisible()) {
-						// Toggle the view.
-						cameraView.toggleVisibility();
-					}
+				// Do a quick check for camera preference changes.
+				if (cameraView != null && cameraEnabled != cameraView.isVisible()) {
+					// Toggle the view.
+					cameraView.toggleVisibility();
 				}
-				return true;
 			}
+			return true;
 		}
 
 		return super.onTouchEvent(event);
@@ -257,11 +232,11 @@ public class IronmanActivity extends Activity {
 	class GLRenderer implements GLSurfaceView.Renderer {
 		public static final double TARGET_FPS = 1000000000.0 / 60.0;
 
-		// List of HUD elements.
-		private List<HUDElement> hudElements = new ArrayList<HUDElement>();
+		// List of HUD Modes.
+		private List<HUDMode> hudModes = new ArrayList<HUDMode>();
 		private Context context;
 
-		// Render controllers.
+		// Rendering limiter controllers.
 		public int fps = 0;
 		public int tps = 0;
 		public int frames;
@@ -300,33 +275,33 @@ public class IronmanActivity extends Activity {
 			fpsTimer = System.currentTimeMillis();
 		}
 
-		public void addHudElement(HUDElement element) {
-			// Add elements to the list.
-			this.hudElements.add(element);
+		public void addHUDMode(HUDMode mode) {
+			// Add modes to the list.
+			this.hudModes.add(mode);
 		}
 
-		public List<HUDElement> getHudElementList() {
-			return new ArrayList<HUDElement>(this.hudElements);
+		public List<HUDMode> getHUDModeList() {
+			return new ArrayList<HUDMode>(this.hudModes);
 		}
 
 		public void onPause() {
-			// Pause the HUD elements.
-			for (HUDElement element : getHudElementList()) {
-				element.onPause();
+			// Pause the HUD Modes.
+			for (HUDMode mode : getHUDModeList()) {
+				mode.onPause();
 			}
 		}
 
 		public void onResume() {
-			// Resume the HUD elements.
-			for (HUDElement element : getHudElementList()) {
-				element.onResume();
+			// Resume the HUD Modes.
+			for (HUDMode mode : getHUDModeList()) {
+				mode.onResume();
 			}
 		}
 
 		public void onDestroy() {
-			// Destroy the HUD elements.
-			for (HUDElement element : getHudElementList()) {
-				element.onDestroy();
+			// Destroy the HUD modes.
+			for (HUDMode mode : getHUDModeList()) {
+				mode.onDestroy();
 			}
 		}
 
@@ -338,9 +313,9 @@ public class IronmanActivity extends Activity {
 
 			// Update while we wait for our target fps.
 			while (delta >= 1) {
-				// Update the HUD elements.
-				for (HUDElement element : getHudElementList()) {
-					element.update();
+				// Update all of the HUD modes.
+				for (HUDMode mode : getHUDModeList()) {
+					mode.update();
 				}
 				ticks++;
 				delta -= 1;
@@ -371,46 +346,18 @@ public class IronmanActivity extends Activity {
 			gl.glMatrixMode(GL10.GL_MODELVIEW);
 			gl.glLoadIdentity();
 
-			// Draw the HUD elements.
-			boolean renderElement = true;
-			for (HUDElement element : getHudElementList()) {
-				// Default to true.
-				renderElement = true;
+			// Draw the current HUD Mode.
+			currentMode.mode.render(gl);
 
-				// Check to see if we can render this HUD element.
-				if ((currentMode == ActivityMode.SATELLITE_MODE && element instanceof Horizon) ||
-					(currentMode != ActivityMode.SATELLITE_MODE && element instanceof SatellitesLocked) ||
-					(currentMode == ActivityMode.OPTIONS_MODE && !(element instanceof Options)) ||
-					(currentMode != ActivityMode.OPTIONS_MODE && element instanceof Options)) {
-					renderElement = false;
-				}
 
-				// Check to see if we can render this HUD element.
-				if (renderElement) {
-					gl.glPushMatrix();
-
-					// Move to the element's location.
-					gl.glTranslatef(element.x, element.y, 0.0f);
-
-					// Scale the element.
-					gl.glScalef(getScale(), getScale(), 1.0f);
-
-					// Render this HUD element.
-					element.render(gl);
-
-					gl.glPopMatrix();
-				}
-			}
-
+			// Move to the mode indicator location.
 			gl.glPushMatrix();
-
-			// Move to the element's location.
 			gl.glTranslatef(20.0f, 20.0f, 0.0f);
 
 			// Scale the element.
-			gl.glScalef(1.0f, 1.0f, 1.0f);
+			gl.glScalef(getScale(), getScale(), 1.0f);
 
-			// Draw the current mode.
+			// Draw the current mode indicator.
 			gl.glEnable(GL10.GL_TEXTURE_2D);
 			gl.glEnable(GL10.GL_BLEND);
 			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
@@ -423,7 +370,7 @@ public class IronmanActivity extends Activity {
 
 			gl.glPopMatrix();
 
-			if (cameraEnabled && (currentMode == ActivityMode.PICTURE_MODE || currentMode == ActivityMode.VIDEO_MODE)) {
+			if (cameraEnabled && currentMode != ActivityMode.OPTIONS_MODE) {
 				gl.glPushMatrix();
 
 				// Draw a shutter button for snapping a picture or starting and stopping video recording.
@@ -493,21 +440,17 @@ public class IronmanActivity extends Activity {
 			float scaleBy = getScale();
 
 			// Clear the list.
-			this.hudElements.clear();
+			this.hudModes.clear();
 
-			// Add the HUD elements.
-			this.addHudElement(new Clock(this.context, this.screenWidth - (int)(220 * scaleBy), this.screenHeight - (int)(220 * scaleBy), scaleBy));
-			this.addHudElement(new Speedometer(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new Altimeter(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new Compass(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new SatellitesLocked(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new Horizon(this.context, this.screenWidth / 2, this.screenHeight / 2, scaleBy));
-			this.addHudElement(new Location(this.context, this.screenWidth / 2, (int)(80 * scaleBy), scaleBy));
-			this.addHudElement(new Battery(this.context, (int)(30 * scaleBy), (int)(this.screenHeight - (80 * scaleBy)), scaleBy));
-//			this.addHudElement(new DemoShapes(this.context, this.screenWidth / 2, this.screenHeight / 2));
-
-			// Always add the options HUD last.
-			this.addHudElement(new Options(this.context, 0, screenHeight, scaleBy));
+			// Add the enabled HUD Modes.
+			for (ActivityMode activityMode : ActivityMode.values()) {
+				// Check to see if this HUD mode is enabled.
+				if (activityMode.enabled) {
+					// Initialize the HUD and add it.
+					activityMode.mode.init(this.context, this.screenWidth, this.screenHeight, scaleBy);
+					this.hudModes.add(activityMode.mode);
+				}
+			}
 		}
 
 		@Override

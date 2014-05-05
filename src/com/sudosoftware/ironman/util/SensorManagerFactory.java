@@ -67,8 +67,8 @@ public class SensorManagerFactory implements SensorEventListener {
 	}
 
 	private void registerListeners() {
-		sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-		sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);
+		sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_FASTEST);
+		sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_FASTEST);
 	}
 
 	private void recalculateAccelerometer(SensorEvent event) {

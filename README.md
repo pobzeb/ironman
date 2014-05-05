@@ -43,6 +43,16 @@ See ToDoList.md for upcoming features.
  Updates:
 ----------
 
+05-05-2014:
+ - Update to add new HUD Mode classes that contain their own HUD elements.
+ - Update to increase Sensor speed for horizon and compass animations. More real-time now.
+ - ActivityMode now contains the HUD Mode that should be shown including all of the HUD Modes' elements.
+ - Increased GPS tracking frequency to 3 seconds.
+ - Enabled camera image capture on all modes except Options mode.
+ - Renamed Picture mode to Flight mode. Modes should follow what you are doing when using them.
+ - Removed Video mode. This will be a feature of camera button. Maybe long press or something like that.
+ - Trying to help slow battery drain due to sensor/GPS data gathering.
+
 05-03-2014:
  - Added debug option to turn on/off debug info.
 
