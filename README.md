@@ -16,7 +16,7 @@ Currently using OpenGL 1.0 (because that's what I know at the moment) for all gr
 
 Current Features:
  - Tap the mode in the bottom left corner of the screen to toggle through
-   available modes. Tap anywhere else to select the mode.
+   available modes.
  - Certain modes have available options accessible through on-screen or hard buttons.
    - For example, snap a photo in Picture mode with the small camera button on the screen.
  - Displays current time and date.
@@ -30,6 +30,7 @@ Current Features:
  - Preferences are saved:
    - Current camera enabled/disabled mode.
    - Current activity mode.
+ - Added facial detection.
 
 Screenshots:
  - <p>Picture Mode:</p>
@@ -42,6 +43,16 @@ See ToDoList.md for upcoming features.
 ----------
  Updates:
 ----------
+
+05-06-2014:
+ - Added face detection with outline that follows faces.
+ - Added face detection indicator to top right of screen.
+ - Updated image capture to save two images:
+   - High resolution image.
+   - Preview image with current overlay.
+ - Added auto-focus to camera preview.
+ - Updates to look of speedometer and altimeter.
+ - Added quad class for drawing quads and rectangles.
 
 05-05-2014:
  - Update to add new HUD Mode classes that contain their own HUD elements.

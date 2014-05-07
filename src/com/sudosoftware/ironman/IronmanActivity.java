@@ -3,22 +3,35 @@ package com.sudosoftware.ironman;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
+import android.hardware.Camera.Face;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLSurfaceView.Renderer;
 import android.opengl.GLU;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -33,6 +46,7 @@ import com.sudosoftware.ironman.mode.HUDMode;
 import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
 import com.sudosoftware.ironman.shapes.Point3D;
+import com.sudosoftware.ironman.shapes.Quad;
 import com.sudosoftware.ironman.util.ActivityMode;
 import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.GlobalOptions;
@@ -48,13 +62,15 @@ public class IronmanActivity extends Activity {
 	// Preferences.
 	private SharedPreferences prefs;
 
-	// Surface and renderer.
-	private GLSurfaceView glView;
-	private GLRenderer glRenderer;
+	// Renderer and camera.
+	private GLRenderer glView;
 	private CameraView cameraView;
 
 	// Flag to determine if the camera preview is enabled.
 	private boolean cameraEnabled = true;
+
+	// Flag to determine if we want to show face detection.
+	private boolean faceDetectionEnabled = false;
 
 	// Flag to determine if the debug info is shown.
 	private boolean showDebugInfo = false;
@@ -85,6 +101,9 @@ public class IronmanActivity extends Activity {
 			if (!cameraEnabled)
 				cameraView.setVisibility(View.GONE);
 
+			// Toggle face detection.
+			cameraView.setFaceDetectionEnabled(faceDetectionEnabled);
+
 			// Add the camera view.
 			addContentView(cameraView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 			cameraLoaded = true;
@@ -94,13 +113,7 @@ public class IronmanActivity extends Activity {
 		}
 
 		// Create the glView and set it to translucent mode if the camera loaded.
-		glView = new GLSurfaceView(this);
-		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-		glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-
-		// Create the Renderer view and add it to the glView.
-		glRenderer = new GLRenderer(this);
-		glView.setRenderer(glRenderer);
+		glView = new GLRenderer(this);
 
 		// Add the glView.
 		addContentView(glView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
@@ -124,6 +137,7 @@ public class IronmanActivity extends Activity {
 		prefs = getSharedPreferences(IRONMAN_PREFS, Context.MODE_PRIVATE);
 		cameraEnabled = prefs.getBoolean(GlobalOptions.CAMERA_PREVIEW_ENABLED, true);
 		showDebugInfo = prefs.getBoolean(GlobalOptions.SHOW_DEBUG_INFO, false);
+		faceDetectionEnabled = prefs.getBoolean(GlobalOptions.SHOW_FACE_DETECTION, false);
 		currentMode = ActivityMode.findActivityMode(prefs.getInt(GlobalOptions.CURRENT_ACTIVITY_MODE, 0));
 		if (currentMode == null || !currentMode.enabled) nextMode();
 	}
@@ -153,7 +167,6 @@ public class IronmanActivity extends Activity {
 		savePreferences();
 
 		glView.onPause();
-		glRenderer.onPause();
 		SensorManagerFactory.getInstance().onPause();
 	}
 
@@ -167,13 +180,12 @@ public class IronmanActivity extends Activity {
 		SensorManagerFactory.getInstance().onResume();
 		glView.onResume();
 		glView.bringToFront();
-		glRenderer.onResume();
 	}
 
 	@Override
 	protected void onDestroy() {
-		glRenderer.onDestroy();
 		SensorManagerFactory.getInstance().onDestroy();
+		glView.onDestroy();
 		super.onDestroy();
 		finish(); // Stops the application completely.
 	}
@@ -183,14 +195,14 @@ public class IronmanActivity extends Activity {
 		// Only looking at touch up events here.
 		if (event.getAction() == MotionEvent.ACTION_UP) {
 			// Determine scaling depending on screen size.
-			float scaleBy = glRenderer.getScale();
+			float scaleBy = glView.getScale();
 
 			// Get the touch location.
 			float touchX = event.getX();
 			float touchY = event.getY();
 
 			// Toggle current mode when touched.
-			if (touchX < (300 * scaleBy) && touchY > glRenderer.screenHeight - (100 * scaleBy)) {
+			if (touchX < (300 * scaleBy) && touchY > glView.screenHeight - (100 * scaleBy)) {
 				// Get the next mode.
 				nextMode();
 				return true;
@@ -198,10 +210,11 @@ public class IronmanActivity extends Activity {
 
 			// Touching the camera button.
 			if (cameraEnabled && currentMode != ActivityMode.OPTIONS_MODE &&
-				((touchX > glRenderer.screenWidth - (140.0f * scaleBy) - 80.0f && touchX < glRenderer.screenWidth - (140.0f * scaleBy) + 80.0f) &&
-				 (touchY > glRenderer.screenHeight - (100.0f * scaleBy) - 80.0f && touchY < glRenderer.screenHeight - (100.0f * scaleBy) + 80.0f))) {
+				((touchX > glView.screenWidth - (140.0f * scaleBy) - 80.0f && touchX < glView.screenWidth - (140.0f * scaleBy) + 80.0f) &&
+				 (touchY > glView.screenHeight - (100.0f * scaleBy) - 80.0f && touchY < glView.screenHeight - (100.0f * scaleBy) + 80.0f))) {
 				// Take a picture.
-				cameraView.takePicture();
+				glView.doCaptureOverlay = true;
+				cameraView.camera.takePicture(null, null, glView);
 				return true;
 			}
 		}
@@ -218,6 +231,12 @@ public class IronmanActivity extends Activity {
 					// Toggle the view.
 					cameraView.toggleVisibility();
 				}
+
+				// Check to see if we toggled face detection.
+				if (cameraEnabled && cameraView != null && faceDetectionEnabled != cameraView.isFaceDetectionEnabled()) {
+					// Toggle face detection.
+					cameraView.toggleFaceDetection();
+				}
 			}
 			return true;
 		}
@@ -229,8 +248,17 @@ public class IronmanActivity extends Activity {
 		Toast.makeText(this, message, length).show();
 	}
 
-	class GLRenderer implements GLSurfaceView.Renderer {
+	class GLRenderer extends GLSurfaceView implements SurfaceHolder.Callback, Camera.PictureCallback, Camera.PreviewCallback, Camera.FaceDetectionListener, Renderer {
+		// Target frame rate.
 		public static final double TARGET_FPS = 1000000000.0 / 60.0;
+
+		// GL to Android Bitmap Color Modifier values.
+		private final float[] cmVals = {
+			0, 0, 1, 0, 0,
+			0, 1, 0, 0, 0,
+			1, 0, 0, 0, 0,
+			0, 0, 0, 1, 0,
+		};
 
 		// List of HUD Modes.
 		private List<HUDMode> hudModes = new ArrayList<HUDMode>();
@@ -251,12 +279,22 @@ public class IronmanActivity extends Activity {
 		// GL Text for display.
 		private GLText glCurrentModeText;
 
+		// Hold a list of faces detected.
+		private List<Face> facesDetected = new ArrayList<Face>();
+
+		// Flag to see if we need to snapshot the overlay.
+		public boolean doCaptureOverlay = false;
+		public Bitmap overlay = null;
+		public Bitmap preview = null;
+
 		public GLRenderer(Context context) {
-			super();
+			super(context);
 			this.context = context;
+			this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+			this.setRenderer(this);
+			this.getHolder().setFormat(PixelFormat.TRANSLUCENT);
 		}
 
-		@Override
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 			// Get an instance of the GLTextFactory.
 			if (GLTextFactory.getInstance() == null) {
@@ -284,6 +322,10 @@ public class IronmanActivity extends Activity {
 			return new ArrayList<HUDMode>(this.hudModes);
 		}
 
+		public List<Face> getFacesDetectedList() {
+			return new ArrayList<Face>(this.facesDetected);
+		}
+
 		public void onPause() {
 			// Pause the HUD Modes.
 			for (HUDMode mode : getHUDModeList()) {
@@ -305,7 +347,6 @@ public class IronmanActivity extends Activity {
 			}
 		}
 
-		@Override
 		public void onDrawFrame(GL10 gl) {
 			long time = System.nanoTime();
 			delta += (time - lastTime) / TARGET_FPS;
@@ -329,7 +370,7 @@ public class IronmanActivity extends Activity {
 			}
 
 			// Redraw background color
-			gl.glClearColor(0.0f, 0.0f, 0.0f, 0.25f);
+			gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 			// Set the viewport.
@@ -370,44 +411,71 @@ public class IronmanActivity extends Activity {
 
 			gl.glPopMatrix();
 
-			if (cameraEnabled && currentMode != ActivityMode.OPTIONS_MODE) {
-				gl.glPushMatrix();
+			if (currentMode != ActivityMode.OPTIONS_MODE) {
+				if (cameraEnabled) {
+					gl.glPushMatrix();
 
-				// Draw a shutter button for snapping a picture or starting and stopping video recording.
-				gl.glTranslatef(screenWidth - (140.0f * getScale()), (100.0f * getScale()), 0.0f);
-				gl.glScalef(getScale(), getScale(), 0.0f);
-				ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
-				Circle.drawCircle(gl, 80.0f, 300, GL10.GL_TRIANGLE_FAN);
-				ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
-				Circle.drawCircle(gl, 75.0f, 300, GL10.GL_TRIANGLE_FAN);
-				ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
-				Circle.drawCircle(gl, 70.0f, 300, GL10.GL_TRIANGLE_FAN);
-				gl.glLineWidth(5.0f);
-				ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
-				for (float i = 35.0f; i >= 25.0f; i--) {
-					BezierCurve.draw2PointCurve(gl,
-						new Point3D(-15.0f, i, 0),
-						new Point3D( 15.0f, i, 0),
-						GL10.GL_LINE_STRIP);
-				}
-				for (float i = 25.0f; i >= -25.0f; i--) {
-					BezierCurve.draw2PointCurve(gl,
-						new Point3D(-40.0f, i, 0),
-						new Point3D( 40.0f, i, 0),
-						GL10.GL_LINE_STRIP);
-				}
-				ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
-				Circle.drawCircle(gl, 24.0f, 300, GL10.GL_TRIANGLE_FAN);
-				ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
-				Circle.drawCircle(gl, 20.0f, 300, GL10.GL_TRIANGLE_FAN);
-				gl.glLineWidth(1.0f);
+					// Draw a shutter button for snapping a picture or starting and stopping video recording.
+					gl.glTranslatef(screenWidth - (140.0f * getScale()), (100.0f * getScale()), 0.0f);
+					gl.glScalef(getScale(), getScale(), 0.0f);
+					ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
+					Circle.drawCircle(gl, 80.0f, 300, GL10.GL_TRIANGLE_FAN);
+					ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
+					Circle.drawCircle(gl, 75.0f, 300, GL10.GL_TRIANGLE_FAN);
+					ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
+					Circle.drawCircle(gl, 70.0f, 300, GL10.GL_TRIANGLE_FAN);
+					gl.glLineWidth(5.0f);
+					ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
+					for (float i = 35.0f; i >= 25.0f; i--) {
+						BezierCurve.draw2PointCurve(gl,
+							new Point3D(-15.0f, i, 0),
+							new Point3D( 15.0f, i, 0),
+							GL10.GL_LINE_STRIP);
+					}
+					for (float i = 25.0f; i >= -25.0f; i--) {
+						BezierCurve.draw2PointCurve(gl,
+							new Point3D(-40.0f, i, 0),
+							new Point3D( 40.0f, i, 0),
+							GL10.GL_LINE_STRIP);
+					}
+					ColorPicker.setGLColor(gl, ColorPicker.SLATEBLUE, 0.75f);
+					Circle.drawCircle(gl, 24.0f, 300, GL10.GL_TRIANGLE_FAN);
+					ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
+					Circle.drawCircle(gl, 20.0f, 300, GL10.GL_TRIANGLE_FAN);
+					gl.glLineWidth(1.0f);
 
-				gl.glPopMatrix();
+					gl.glPopMatrix();
+				}
+
+				if (cameraEnabled && faceDetectionEnabled) {
+					// Show detected faces.
+					int pad = 10;
+					for (Face face : this.getFacesDetectedList()) {
+						gl.glPushMatrix();
+		
+						// Camera driver coordinates range from (-1000, -1000) to (1000, 1000).
+						// UI coordinates range from (0, 0) to (width, height).
+						int l = ((face.rect.left + 1000) * screenWidth / 2000) - (int)(pad * getScale());
+						int t = (screenHeight - ((face.rect.top + 1000) * screenHeight / 2000)) + (int)(pad * getScale());
+						int r = ((face.rect.right + 1000) * screenWidth / 2000) + (int)(pad * getScale());
+						int b = (screenHeight - ((face.rect.bottom + 1000) * screenHeight / 2000)) - (int)(pad * getScale());
+		
+						// Draw a rectangle around the face.
+						gl.glLineWidth(5.0f);
+						ColorPicker.setGLColor(gl, ColorPicker.RED, 0.75f);
+						Quad.drawRect(gl, l, b, r - l, t - b, GL10.GL_LINE_STRIP);
+						gl.glLineWidth(1.0f);
+	
+						gl.glPopMatrix();
+					}
+				}
+
+				// Draw the face detect icon.
+				drawFaceDetectIcon(gl);
 			}
 
+			// Check the fps value.
 			frames++;
-
-			// Set the fps value.
 			if (System.currentTimeMillis() - fpsTimer > 1000) {
 				fpsTimer += 1000;
 				fps = frames;
@@ -421,9 +489,62 @@ public class IronmanActivity extends Activity {
 				String[] fpsString = {
 					"FPS: " + fps,
 					"Battery: " + SensorManagerFactory.getInstance().getBatteryLevel(),
+					"Faces Detected: " + (faceDetectionEnabled ? this.getFacesDetectedList().size() : "Disabled"),
 				};
 				GLTextFactory.getInstance().debugTextBlock(gl, fpsString, this.screenWidth, this.screenHeight, ColorPicker.AQUAMARINE, 1.0f, getScale());
 			}
+
+			// Check to see if we need to save a snapshot.
+			if (doCaptureOverlay) {
+				saveOverlay(gl, 0, 0, cameraView.previewWidth, cameraView.previewHeight);
+			}
+		}
+
+		private void drawFaceDetectIcon(GL10 gl) {
+			// Show an indicator that face detection is turned on.
+			gl.glPushMatrix();
+			gl.glLineWidth(3.0f);
+			if (cameraEnabled && faceDetectionEnabled)
+				ColorPicker.setGLColor(gl, ColorPicker.CORAL, 0.75f);
+			else
+				ColorPicker.setGLColor(gl, ColorPicker.BROWN, 0.25f);
+			Quad.drawRect(gl, screenWidth - (int)(50 * getScale()), screenHeight - (int)(50 * getScale()), 30, 30, GL10.GL_LINE_STRIP);
+			Quad.drawQuad(gl, screenWidth - (int)(42 * getScale()), screenHeight - (int)(30 * getScale()), 5, 5, GL10.GL_TRIANGLE_FAN);
+			Quad.drawQuad(gl, screenWidth - (int)(32 * getScale()), screenHeight - (int)(30 * getScale()), 5, 5, GL10.GL_TRIANGLE_FAN);
+			gl.glTranslatef(screenWidth - (int)(35 * getScale()), screenHeight - (int)(35 * getScale()), 0.0f);
+			Circle.drawArc(gl, 10.0f, 210.0f, 330.0f, 200, GL10.GL_LINE_STRIP, true);
+			gl.glLineWidth(1.0f);
+			gl.glPopMatrix();
+		}
+
+		private void saveOverlay(GL10 gl, int x, int y, int w, int h) {
+			// Collect the pixels from the GLSurfaceView.
+			int[] b = new int[w * h];
+			IntBuffer ib = IntBuffer.wrap(b);
+			ib.position(0);
+			gl.glReadPixels(x, y, w, h, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, ib);
+			Bitmap glBitmap = Bitmap.createBitmap(b, w, h, Bitmap.Config.ARGB_8888);
+			ib = null;
+			b = null;
+
+			// Translate pixel colors to make them android compatible.
+			Paint paint = new Paint();
+			paint.setColorFilter(new ColorMatrixColorFilter(new ColorMatrix(cmVals)));
+			Bitmap newImage = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+			Canvas canvas = new Canvas(newImage);
+			canvas.drawBitmap(glBitmap, 0, 0, paint);
+			glBitmap.recycle();
+			glBitmap = null;
+
+			// Generate the overlay from the modified pixels with the help of a matrix.
+			Matrix matrix = new Matrix();
+			matrix.preScale(1.0f, -1.0f); // Vertical flip.
+			overlay = Bitmap.createBitmap(newImage, 0, 0, newImage.getWidth(), newImage.getHeight(), matrix, true);
+			newImage.recycle();
+			newImage = null;
+
+			// Done capturing overlay.
+			doCaptureOverlay = false;
 		}
 
 		public float getScale() {
@@ -453,18 +574,121 @@ public class IronmanActivity extends Activity {
 			}
 		}
 
-		@Override
 		public void onSurfaceChanged(GL10 gl, int width, int height) {
 			this.screenWidth = width;
 			this.screenHeight = height;
 
 			loadHUDList();
 		}
+
+		@Override
+		public void onFaceDetection(Face[] faces, Camera camera) {
+			// Load the faces list.
+			facesDetected = new ArrayList<Face>(Arrays.asList(faces));
+		}
+
+		@Override
+		public void onPictureTaken(byte[] data, Camera camera) {
+			while (doCaptureOverlay);
+			new SavePhotoTask().execute(data);
+			camera.startPreview();
+		}
+
+		@Override
+		public void onPreviewFrame(byte[] data, Camera camera) {
+		}
+
+		class SavePhotoTask extends AsyncTask<byte[], String, String> {
+			private ProgressDialog dialog = new ProgressDialog(IronmanActivity.this);
+			private String toastMessage;
+
+			@Override
+			protected void onPreExecute() {
+				this.dialog.setMessage("Saving...");
+				this.dialog.show();
+			}
+
+			@Override
+			protected String doInBackground(byte[]... jpeg) {
+				// Save the photo.
+				long uID = System.currentTimeMillis();
+				byte[] data = jpeg[0];
+				publishProgress("Processing image...");
+				Bitmap cameraBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+				File photo = new File(Environment.getExternalStorageDirectory() + "/DCIM/Ironman", uID + ".jpg");
+				photo.getParentFile().mkdirs();
+
+				try {
+					// Save the file.
+					publishProgress("Saving image...");
+					FileOutputStream fos = new FileOutputStream(photo);
+					cameraBitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+					fos.flush();
+					fos.close();
+					toastMessage = "Image Saved to " + photo.getAbsolutePath();
+				}
+				catch (java.io.IOException e) {
+					toastMessage = "Error saving image!";
+					Log.e(TAG, "Error saving image!", e);
+					return null;
+				}
+
+				// Scale the picture to our overlay size.
+				publishProgress("Generating overlay...");
+				preview = Bitmap.createScaledBitmap(cameraBitmap, overlay.getWidth(), overlay.getHeight(), false);
+
+				try {
+					// Add the overlay to the preview.
+					Canvas canvas = new Canvas(preview);
+					canvas.drawBitmap(overlay, 0.0f, 0.0f, null);
+
+					// Save the overlay photo.
+					photo = new File(Environment.getExternalStorageDirectory() + "/DCIM/Ironman", uID + "-overlay.jpg");
+
+					// Save the file.
+					publishProgress("Saving overlay...");
+					FileOutputStream fos = new FileOutputStream(photo);
+					preview.compress(Bitmap.CompressFormat.JPEG, 95, fos);
+					fos.flush();
+					fos.close();
+					cameraBitmap.recycle();
+					overlay.recycle();
+					preview.recycle();
+					cameraBitmap = null;
+					overlay = null;
+					preview = null;
+				}
+				catch (Exception e) {
+					Log.e(TAG, "Error saving overlay", e);
+				}
+
+				return null;
+			}
+
+			@Override
+			protected void onProgressUpdate(String... values) {
+				if (dialog.isShowing()) {
+					this.dialog.setMessage(values[0]);
+				}
+				super.onProgressUpdate(values);
+			}
+
+			@Override
+			protected void onPostExecute(String result) {
+				if (dialog.isShowing()) {
+					dialog.dismiss();
+				}
+
+				toastMessage(toastMessage, Toast.LENGTH_LONG);
+			}
+		}
 	}
 
-	class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.ShutterCallback, Camera.PictureCallback, Camera.PreviewCallback {
+	class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 		private Camera camera;
 		private SurfaceHolder mHolder;
+		private boolean faceDetectionEnabled;
+		public int previewWidth, previewHeight;
 
 		@SuppressWarnings("deprecation")
 		public CameraView(Context context) {
@@ -482,13 +706,32 @@ public class IronmanActivity extends Activity {
 			return getVisibility() == View.VISIBLE;
 		}
 
+		public void toggleFaceDetection() {
+			this.faceDetectionEnabled = !this.faceDetectionEnabled;
+			if (this.faceDetectionEnabled) {
+				camera.startFaceDetection();
+			}
+			else {
+				camera.stopFaceDetection();
+			}
+		}
+
+		public void setFaceDetectionEnabled(boolean faceDetectionEnabled) {
+			this.faceDetectionEnabled = faceDetectionEnabled;
+		}
+
+		public boolean isFaceDetectionEnabled() {
+			return this.faceDetectionEnabled;
+		}
+
 		@Override
 		public void surfaceCreated(SurfaceHolder holder) {
 			try {
 				// Try to open the camera and set the callbacks.
 				camera = Camera.open();
 				camera.setPreviewDisplay(holder);
-				camera.setPreviewCallback(this);
+				camera.setPreviewCallback(glView);
+				camera.setFaceDetectionListener(glView);
 			}
 			catch (IOException e) {}
 		}
@@ -498,19 +741,47 @@ public class IronmanActivity extends Activity {
 			try {
 				// Stop the preview first.
 				camera.stopPreview();
+				if (this.faceDetectionEnabled)
+					camera.stopFaceDetection();
 			}
 			catch (Exception e) {}
 
 			try {
-				// Set the preview size.
+				// Set the camera settings.
 				Camera.Parameters params = camera.getParameters();
+
+				// Try for the highest preview resolution.
 				List<Camera.Size> previewSizes = params.getSupportedPreviewSizes();
+				int hrWidth = 0;
 				for (Camera.Size previewSize : previewSizes) {
-					if (previewSize.width == width) {
+					if (previewSize.width >= hrWidth) {
+						hrWidth = previewSize.width;
 						params.setPreviewSize(previewSize.width, previewSize.height);
-						break;
+						this.previewWidth = previewSize.width;
+						this.previewHeight = previewSize.height;
 					}
 				}
+
+				// Try for the highest picture resolution.
+				List<Camera.Size> pictureSizes = params.getSupportedPictureSizes();
+				hrWidth = 0;
+				for (Camera.Size pictureSize : pictureSizes) {
+					if (pictureSize.width >= hrWidth) {
+						hrWidth = pictureSize.width;
+						params.setPictureSize(pictureSize.width, pictureSize.height);
+					}
+				}
+
+				// Let the camera auto-focus.
+				List<String> focusModes = params.getSupportedFocusModes();
+				if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+				    params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+				}
+
+				// Set picture quality.
+				params.setJpegQuality(95);
+
+				// Set the camera settings into the camera.
 				camera.setParameters(params);
 			}
 			catch (Exception e) {}
@@ -518,6 +789,8 @@ public class IronmanActivity extends Activity {
 			try {
 				// Start the preview.
 				camera.startPreview();
+				if (this.faceDetectionEnabled)
+					camera.startFaceDetection();
 			}
 			catch (Exception e) {
 			}
@@ -525,61 +798,22 @@ public class IronmanActivity extends Activity {
 
 		@Override
 		public void surfaceDestroyed(SurfaceHolder holder) {
-			try {
-				camera.release();
-			}
-			catch (Exception e) {}
-			camera = null;
-		}
-
-		@Override
-		public void onPreviewFrame(byte[] data, Camera camera) {
-		}
-
-		public void takePicture() {
-			camera.takePicture(null, null, this);
-		}
-
-		@Override
-		public void onShutter() {
-		}
-
-		@Override
-		public void onPictureTaken(byte[] data, Camera camera) {
-			new SavePhotoTask().execute(data);
-			this.camera.startPreview();
-		}
-
-		class SavePhotoTask extends AsyncTask<byte[], String, String> {
-			private String toastMessage;
-			@Override
-			protected String doInBackground(byte[]... jpeg) {
-				File photo = new File(Environment.getExternalStorageDirectory() + "/DCIM/Ironman", System.currentTimeMillis() + ".jpg");
-				try {
-					if (!photo.exists()) {
-						photo.mkdirs();
+			synchronized (this) {
+				if (camera != null) {
+					try {
+						camera.stopPreview();
 					}
-	
-					if (photo.exists()) {
-						photo.delete();
+					catch (Exception e) {}
+					try {
+						camera.stopFaceDetection();
 					}
-
-					FileOutputStream fos = new FileOutputStream(photo);
-					fos.write(jpeg[0]);
-					fos.flush();
-					fos.close();
-					toastMessage = "Image Saved to " + photo.getAbsolutePath();
+					catch (Exception e) {}
+					try {
+						camera.release();
+					}
+					catch (Exception e) {}
+					camera = null;
 				}
-				catch (java.io.IOException e) {
-					toastMessage = "Error saving image!";
-				}
-
-				return null;
-			}
-
-			@Override
-			protected void onPostExecute(String result) {
-				toastMessage(toastMessage, Toast.LENGTH_LONG);
 			}
 		}
 	}

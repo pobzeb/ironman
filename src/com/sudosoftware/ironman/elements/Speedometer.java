@@ -8,8 +8,8 @@ import android.content.Context;
 
 import com.sudosoftware.ironman.gltext.GLText;
 import com.sudosoftware.ironman.gltext.GLTextFactory;
-import com.sudosoftware.ironman.shapes.BezierCurve;
-import com.sudosoftware.ironman.shapes.Point3D;
+import com.sudosoftware.ironman.shapes.Circle;
+import com.sudosoftware.ironman.shapes.Quad;
 import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
@@ -57,19 +57,17 @@ public class Speedometer extends HUDElement {
 		// Draw a speedometer display. This would fit nicely along the left side
 		// of the horizon HUD element.
 		gl.glLineWidth(10.0f);
+		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
+		Quad.drawQuad(gl, -740.0f, -50.0f, 740.0f - 340.0f, 100.0f, GL10.GL_TRIANGLE_FAN);
 		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
-		BezierCurve.draw2PointCurve(gl,
-			new Point3D(-340.0f, -50.0f, 0.0f),
-			new Point3D(-340.0f,  50.0f, 0.0f), GL10.GL_LINE_STRIP);
-		BezierCurve.draw2PointCurve(gl,
-			new Point3D(-740.0f, -50.0f, 0.0f),
-			new Point3D(-740.0f,  50.0f, 0.0f), GL10.GL_LINE_STRIP);
-		BezierCurve.draw2PointCurve(gl,
-			new Point3D(-340.0f,  50.0f, 0.0f),
-			new Point3D(-740.0f,  50.0f, 0.0f), GL10.GL_LINE_STRIP);
-		BezierCurve.draw2PointCurve(gl,
-			new Point3D(-340.0f, -50.0f, 0.0f),
-			new Point3D(-740.0f, -50.0f, 0.0f), GL10.GL_LINE_STRIP);
+		Quad.drawRect(gl, -740.0f, -50.0f, 740.0f - 340.0f, 100.0f, GL10.GL_LINE_STRIP);
+		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.0f);
+		Circle.drawCircle(gl, 340.0f, 500, GL10.GL_TRIANGLE_FAN);
+		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
+		gl.glPushMatrix();
+		gl.glRotatef(-189.0f, 0.0f, 0.0f, 1.0f);
+		Circle.drawArc(gl, 343.0f, 0.0f, 18.0f, 500, GL10.GL_LINE_STRIP, true);
+		gl.glPopMatrix();
 		gl.glLineWidth(1.0f);
 
 		// Draw the current altitude.
@@ -78,12 +76,12 @@ public class Speedometer extends HUDElement {
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		glSpeedText.setScale(1.0f);
 		ColorPicker.setGLTextColor(glSpeedText, ColorPicker.CORAL, 1.0f);
-		String speedDisplay = "--.--";
+		String speedDisplay = "--.-- mph";
 		try {
-			speedDisplay = speedFormat.format(speed);
+			speedDisplay = speedFormat.format(speed) + " mph";
 		}
 		catch (Exception e) {}
-		glSpeedText.draw(speedDisplay + " mph", -340.0f - GLTextFactory.getStringWidth(glSpeedText, speedDisplay + " mph") - 15.0f, -(glSpeedText.getCharHeight() / 2.0f) + 5.0f);
+		glSpeedText.draw(speedDisplay, -340.0f - GLTextFactory.getStringWidth(glSpeedText, speedDisplay) - 15.0f, -(glSpeedText.getCharHeight() / 2.0f) + 5.0f);
 		glSpeedText.end();
 		gl.glDisable(GL10.GL_BLEND);
 		gl.glDisable(GL10.GL_TEXTURE_2D);

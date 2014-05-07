@@ -11,6 +11,7 @@ import com.sudosoftware.ironman.gltext.GLTextFactory;
 import com.sudosoftware.ironman.shapes.BezierCurve;
 import com.sudosoftware.ironman.shapes.Circle;
 import com.sudosoftware.ironman.shapes.Point3D;
+import com.sudosoftware.ironman.shapes.Quad;
 import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
@@ -60,6 +61,10 @@ public class Altimeter extends HUDElement {
 		// Draw an altitude scale. This would fit nicely along the right side
 		// of the horizon HUD element.
 		gl.glLineWidth(10.0f);
+		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
+		Quad.drawQuad(gl, 340.0f, -50.0f, 740.0f - 340.0f, 100.0f, GL10.GL_TRIANGLE_FAN);
+		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
+		Quad.drawRect(gl, 340.0f, -50.0f, 740.0f - 340.0f, 100.0f, GL10.GL_LINE_STRIP);
 		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
 		for (float yLine = 300.0f; yLine >= -300.0f; yLine-=50.0f) {
 			// Skip the area where we want to show the current altitude.
@@ -68,21 +73,13 @@ public class Altimeter extends HUDElement {
 				new Point3D(400.0f, yLine, 0.0f),
 				new Point3D(100.0f, yLine, 0.0f), GL10.GL_LINE_STRIP);
 		}
-		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.25f);
-		Circle.drawCircle(gl, 335.0f, 500, GL10.GL_TRIANGLE_FAN);
+		ColorPicker.setGLColor(gl, ColorPicker.BLACK, 0.0f);
+		Circle.drawCircle(gl, 340.0f, 500, GL10.GL_TRIANGLE_FAN);
 		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
-		BezierCurve.draw2PointCurve(gl,
-			new Point3D(340.0f, -50.0f, 0.0f),
-			new Point3D(340.0f,  50.0f, 0.0f), GL10.GL_LINE_STRIP);
-		BezierCurve.draw2PointCurve(gl,
-			new Point3D(740.0f, -50.0f, 0.0f),
-			new Point3D(740.0f,  50.0f, 0.0f), GL10.GL_LINE_STRIP);
-		BezierCurve.draw2PointCurve(gl,
-			new Point3D(340.0f,  50.0f, 0.0f),
-			new Point3D(740.0f,  50.0f, 0.0f), GL10.GL_LINE_STRIP);
-		BezierCurve.draw2PointCurve(gl,
-			new Point3D(340.0f, -50.0f, 0.0f),
-			new Point3D(740.0f, -50.0f, 0.0f), GL10.GL_LINE_STRIP);
+		gl.glPushMatrix();
+		gl.glRotatef(-9.0f, 0.0f, 0.0f, 1.0f);
+		Circle.drawArc(gl, 343.0f, 0.0f, 18.0f, 500, GL10.GL_LINE_STRIP, true);
+		gl.glPopMatrix();
 		gl.glLineWidth(1.0f);
 
 		// Draw the current altitude.
@@ -91,12 +88,12 @@ public class Altimeter extends HUDElement {
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		glAltitudeText.setScale(1.0f);
 		ColorPicker.setGLTextColor(glAltitudeText, ColorPicker.CORAL, 1.0f);
-		String altitudeDisplay = "--.--";
+		String altitudeDisplay = "--.-- ft.";
 		try {
-			altitudeDisplay = altitudeFormat.format(altitude);
+			altitudeDisplay = altitudeFormat.format(altitude) + " ft.";
 		}
 		catch (Exception e) {}
-		glAltitudeText.draw(altitudeDisplay + " ft.", 740.0f - GLTextFactory.getStringWidth(glAltitudeText, altitudeDisplay + " ft.") - 15.0f, -(glAltitudeText.getCharHeight() / 2.0f) + 5.0f);
+		glAltitudeText.draw(altitudeDisplay, 740.0f - GLTextFactory.getStringWidth(glAltitudeText, altitudeDisplay) - 15.0f, -(glAltitudeText.getCharHeight() / 2.0f) + 5.0f);
 		glAltitudeText.end();
 		gl.glDisable(GL10.GL_BLEND);
 		gl.glDisable(GL10.GL_TEXTURE_2D);

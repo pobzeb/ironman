@@ -42,6 +42,7 @@ public class Options extends HUDElement {
 			options = new ArrayList<Option>();
 			options.add(new Option("Show Camera Preview", GlobalOptions.CAMERA_PREVIEW_ENABLED, getPreference(GlobalOptions.CAMERA_PREVIEW_ENABLED, true)));
 			options.add(new Option("Show Debug Info", GlobalOptions.SHOW_DEBUG_INFO, getPreference(GlobalOptions.SHOW_DEBUG_INFO, false)));
+			options.add(new Option("Show Face Detection", GlobalOptions.SHOW_FACE_DETECTION, getPreference(GlobalOptions.SHOW_FACE_DETECTION, false)));
 		}
 		catch (Exception e) {
 			Log.e(IronmanActivity.TAG, "Error initializing Options HUD element", e);

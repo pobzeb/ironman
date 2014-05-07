@@ -30,3 +30,4 @@ Completed Features:
 6. Create speedometer HUD element.
 7. Create satellite HUD element to show fixed satellites.
 8. Create battery status HUD element to show current battery level.
+9. Add face detection.

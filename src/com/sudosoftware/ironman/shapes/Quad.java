@@ -23,4 +23,18 @@ public class Quad extends Shape {
 
 		draw(gl, vertices, vertices.length / 3, drawMode);
 	}
+
+	public static void drawRect(GL10 gl, float x, float y, float w, float h, int drawMode) {
+		gl.glPushMatrix();
+		gl.glTranslatef(x, y, 0.0f);
+		drawRect(gl, w, h, drawMode);
+		gl.glPopMatrix();
+	}
+
+	public static void drawRect(GL10 gl, float w, float h, int drawMode) {
+		BezierCurve.draw2PointCurve(gl, new Point3D(0, 0, 0.0f), new Point3D(w, 0, 0.0f), drawMode);
+		BezierCurve.draw2PointCurve(gl, new Point3D(0, h, 0.0f), new Point3D(w, h, 0.0f), drawMode);
+		BezierCurve.draw2PointCurve(gl, new Point3D(0, 0, 0.0f), new Point3D(0, h, 0.0f), drawMode);
+		BezierCurve.draw2PointCurve(gl, new Point3D(w, 0, 0.0f), new Point3D(w, h, 0.0f), drawMode);
+	}
 }
