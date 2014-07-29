@@ -15,24 +15,27 @@ public abstract class HUDElement {
 	// Shared preferences.
 	protected SharedPreferences prefs;
 
-	// Hud element position.
+	// Hud element position and size.
 	public int x, y;
+	public int w, h;
 
 	// Scale to display element.
 	public float scale;
 
 	protected HUDElement(Context context) {
-		this(context, 0, 0);
+		this(context, 0, 0, 10, 10);
 	}
 
-	protected HUDElement(Context context, int x, int y) {
-		this(context, x, y, 1.0f);
+	protected HUDElement(Context context, int x, int y, int w, int h) {
+		this(context, x, y, w, h, 1.0f);
 	}
 
-	protected HUDElement(Context context, int x, int y, float scale) {
+	protected HUDElement(Context context, int x, int y, int w, int h, float scale) {
 		this.context = context;
 		this.x = x;
 		this.y = y;
+		this.w = w;
+		this.h = h;
 		this.scale = scale;
 
 		// Get the shared preferences.
@@ -100,6 +103,11 @@ public abstract class HUDElement {
 	public void setPosition(int x, int y) {
 		this.x = x;
 		this.y = y;
+	}
+
+	public void resize(int w, int h) {
+		this.w = w;
+		this.h = h;
 	}
 
 	public void init() {}

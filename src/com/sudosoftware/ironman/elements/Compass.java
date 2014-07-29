@@ -15,13 +15,8 @@ import com.sudosoftware.ironman.util.SensorManagerFactory;
 
 public class Compass extends HUDElement {
 	// Display values.
-	public static final float COMPASS_DIST_BETWEEN_TICKS = 22.5f;
-	public static final float SCREEN_DIST_BETWEEN_TICKS = 160.0f;
-	public static final float HUD_ELEMENT_LEFT_EDGE = -390.0f;
-	public static final float HUD_ELEMENT_RIGHT_EDGE = 380.0f;
-
-	// Hold our compass tick points.
-	private float[] degrees;
+	public static final float TICK_DELTA = 22.5f;
+	public static final float TICKS_PER_SCREEN = 4.0f;
 
 	// Set the bearing number formatter.
 	private NumberFormat bearingFormat;
@@ -34,23 +29,16 @@ public class Compass extends HUDElement {
 		super(context);
 	}
 
-	public Compass(Context context, int x, int y) {
-		super(context, x, y);
+	public Compass(Context context, int x, int y, int w, int h) {
+		super(context, x, y, w, h);
 	}
 
-	public Compass(Context context, int x, int y, float scale) {
-		super(context, x, y, scale);
+	public Compass(Context context, int x, int y, int w, int h, float scale) {
+		super(context, x, y, w, h, scale);
 	}
 
 	@Override
 	public void init() {
-		// Initialize the points in our degrees array.
-		int idx = 0;
-		degrees = new float[16];
-		for (float deg = 0.0f; idx < degrees.length; deg+=COMPASS_DIST_BETWEEN_TICKS, idx++) {
-			degrees[idx] = deg;
-		}
-
 		// Set the formatter.
 		bearingFormat = NumberFormat.getInstance();
 		bearingFormat.setMaximumFractionDigits(1);
@@ -59,9 +47,9 @@ public class Compass extends HUDElement {
 
 		// Load the font.
 		glBearingText = GLTextFactory.getInstance().createGLText();
-		glBearingText.load("Roboto-Regular.ttf", 95, 2, 2);
+		glBearingText.load("Roboto-Regular.ttf", 45, 2, 2);
 		glDegreesText = GLTextFactory.getInstance().createGLText();
-		glDegreesText.load("Roboto-Regular.ttf", 35, 2, 2);
+		glDegreesText.load("Roboto-Regular.ttf", 25, 2, 2);
 	}
 
 	@Override
@@ -69,8 +57,7 @@ public class Compass extends HUDElement {
 
 	@Override
 	public void render(GL10 gl) {
-		// Draw the compass horizontally. This would fit nicely along the top
-		// of the horizon HUD element.
+		// Draw the compass horizontally.
 
 		// Get our current bearing.
 		float bearing = SensorManagerFactory.getInstance().getCompassBearing();
@@ -78,39 +65,41 @@ public class Compass extends HUDElement {
 		// Calculate the positions and tick marks that need to be shown.
 		// -------------------------------------------------------------
 		// Closest tick to the left of our current bearing.
-		float tickDist = bearing % COMPASS_DIST_BETWEEN_TICKS;
-		float tick = bearing - tickDist;
-		if (tick < 0.0f) tick = (tick + 360.0f) % 360.0f;
+		float leftTickDelta = bearing % TICK_DELTA;
+		float leftTick = bearing - leftTickDelta;
+		if (leftTick < 0.0f) leftTick = (leftTick + 360.0f) % 360.0f;
 
-		// Screen coordinate of tick (will be left of the HUD element center so * -1.0).
-		float tickPosition = -1.0f * ((tickDist * SCREEN_DIST_BETWEEN_TICKS) / COMPASS_DIST_BETWEEN_TICKS);
+		// Calculate the screen tick delta.
+		float tickScreenDelta = w / TICKS_PER_SCREEN;
+
+		// Screen coordinate of tick.
+		float leftTickScreenDelta = (tickScreenDelta * leftTickDelta) / TICK_DELTA;
+		float leftTickScreen = (w / 2.0f) - leftTickScreenDelta;
 
 		// Check to see if we can show another tick to the left of this one.
-		while (tickPosition - SCREEN_DIST_BETWEEN_TICKS >= HUD_ELEMENT_LEFT_EDGE) {
-			tick -= COMPASS_DIST_BETWEEN_TICKS;
-			if (tick < 0.0f) tick = (tick + 360.0f) % 360.0f;
-			tickPosition -= SCREEN_DIST_BETWEEN_TICKS;
-		}
+		float tickScreenPosition = leftTickScreen - (tickScreenDelta * ((TICKS_PER_SCREEN / 2) + 1));
+		float tickPosition = leftTick - (TICK_DELTA * ((TICKS_PER_SCREEN / 2) + 1));
+		if (tickPosition < 0.0f) tickPosition = (tickPosition + 360.0f) % 360.0f;
 
-		// Draw a horizontal line across the bottom.
-		gl.glLineWidth(10.0f);
+		// Draw a horizontal line across the top.
+		gl.glLineWidth(5.0f);
 		ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
 		BezierCurve.draw2PointCurve(gl,
-			new Point3D(-400.0f, 350.0f, 0.0f),
-			new Point3D(400.0f, 350.0f, 0.0f), GL10.GL_LINE_STRIP);
+			new Point3D(0.0f,  h, 0.0f),
+			new Point3D(w, h, 0.0f), GL10.GL_LINE_STRIP);
 		gl.glLineWidth(1.0f);
 
 		// Display the visible tick marks.
-		for (float xLine = tickPosition; xLine <= HUD_ELEMENT_RIGHT_EDGE; xLine+=SCREEN_DIST_BETWEEN_TICKS, tick+=COMPASS_DIST_BETWEEN_TICKS) {
+		for (float xLine = tickScreenPosition; xLine <= w; xLine+=tickScreenDelta, tickPosition+=TICK_DELTA) {
 			// Check to see if we crossed over 360.0.
-			if (tick == 360.0f) tick = 0.0f;
+			if (tickPosition == 360.0f) tickPosition = 0.0f;
 
 			// Draw a tick mark for this position.
-			gl.glLineWidth(10.0f);
+			gl.glLineWidth(5.0f);
 			ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
 			BezierCurve.draw2PointCurve(gl,
-				new Point3D(xLine, (tick % 90.0f == 0 ? 445.0f : (tick % 45.0f == 0 ? 415.0f : 390.0f)), 0.0f),
-				new Point3D(xLine, 350.0f, 0.0f), GL10.GL_LINE_STRIP);
+				new Point3D(xLine, (tickPosition % 90.0f == 0 ? 20.0f : (tickPosition % 45.0f == 0 ? 30.0f : 45.0f)), 0.0f),
+				new Point3D(xLine, h, 0.0f), GL10.GL_LINE_STRIP);
 			gl.glLineWidth(1.0f);
 
 			// Draw the bearing notations.
@@ -119,18 +108,18 @@ public class Compass extends HUDElement {
 			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 			glDegreesText.setScale(1.0f);
 			ColorPicker.setGLTextColor(glDegreesText, ColorPicker.CORAL, 1.0f);
-			String bearingDisplay = String.valueOf(tick);
+			String bearingDisplay = String.valueOf(tickPosition);
 			try {
-				bearingDisplay = bearingFormat.format(tick);
+				bearingDisplay = bearingFormat.format(tickPosition);
 			}
 			catch (Exception e) {}
-			glDegreesText.drawC(bearingDisplay, xLine, 475.0f);
+			glDegreesText.drawC(bearingDisplay, xLine, 0.0f);
 			glDegreesText.end();
 
 			// Draw N, S, W or E.
-			if (tick % 90.0f == 0) {
+			if (tickPosition % 90.0f == 0) {
 				String bearingNotation = "";
-				switch ((int)tick) {
+				switch ((int)tickPosition) {
 				case 0:
 					bearingNotation = "N";
 					break;
@@ -149,7 +138,7 @@ public class Compass extends HUDElement {
 				}
 				glBearingText.setScale(1.0f);
 				ColorPicker.setGLTextColor(glBearingText, ColorPicker.CORAL, 1.0f);
-				glBearingText.draw(bearingNotation, xLine + 10.0f, 340.0f);
+				glBearingText.draw(bearingNotation, xLine + 10.0f, 15.0f);
 				glBearingText.end();
 			}
 			gl.glDisable(GL10.GL_BLEND);

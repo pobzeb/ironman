@@ -39,12 +39,12 @@ public class Clock extends HUDElement {
 		super(context);
 	}
 
-	public Clock(Context context, int x, int y) {
-		super(context, x, y);
+	public Clock(Context context, int x, int y, int w, int h) {
+		super(context, x, y, w, h);
 	}
 
-	public Clock(Context context, int x, int y, float scale) {
-		super(context, x, y, scale);
+	public Clock(Context context, int x, int y, int w, int h, float scale) {
+		super(context, x, y, w, h, scale);
 	}
 
 	@Override

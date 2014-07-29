@@ -29,12 +29,12 @@ public class Location extends HUDElement {
 		super(context);
 	}
 
-	public Location(Context context, int x, int y) {
-		super(context, x, y);
+	public Location(Context context, int x, int y, int w, int h) {
+		super(context, x, y, w, h);
 	}
 
-	public Location(Context context, int x, int y, float scale) {
-		super(context, x, y, scale);
+	public Location(Context context, int x, int y, int w, int h, float scale) {
+		super(context, x, y, w, h, scale);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class Location extends HUDElement {
 		if (satelliteCount == 0) {
 			glInfoText.setScale(1.0f);
 			ColorPicker.setGLTextColor(glInfoText, ColorPicker.CORAL, 1.0f);
-			glInfoText.drawC("Showing last known location", 0.0f, 50.0f);
+			glInfoText.drawC("Showing last known location", w / 2, h);
 			glInfoText.end();
 		}
 		glLatLongText.setScale(1.0f);
@@ -79,7 +79,7 @@ public class Location extends HUDElement {
 			latLongDisplay = latLongFormat.format(latitude) + ", " + latLongFormat.format(longitude);
 		}
 		catch (Exception e) {}
-		glLatLongText.drawC(latLongDisplay, 0.0f, 0.0f);
+		glLatLongText.drawC(latLongDisplay, w / 2, (h / 2) + 20);
 		glLatLongText.end();
 		glInfoText.setScale(1.0f);
 		ColorPicker.setGLTextColor(glInfoText, ColorPicker.CORAL, 1.0f);
@@ -91,7 +91,7 @@ public class Location extends HUDElement {
 				satCountDisplay = "(Using " + satelliteCount + " satellites)";
 		}
 		catch (Exception e) {}
-		glInfoText.drawC(satCountDisplay, 0.0f, -50.0f);
+		glInfoText.drawC(satCountDisplay, w / 2, glInfoText.getCharHeight());
 		glInfoText.end();
 		gl.glDisable(GL10.GL_BLEND);
 		gl.glDisable(GL10.GL_TEXTURE_2D);

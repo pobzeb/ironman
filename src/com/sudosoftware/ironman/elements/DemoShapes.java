@@ -15,12 +15,12 @@ public class DemoShapes extends HUDElement {
 		super(context);
 	}
 
-	public DemoShapes(Context context, int x, int y) {
-		super(context, x, y);
+	public DemoShapes(Context context, int x, int y, int w, int h) {
+		super(context, x, y, w, h);
 	}
 
-	public DemoShapes(Context context, int x, int y, float scale) {
-		super(context, x, y, scale);
+	public DemoShapes(Context context, int x, int y, int w, int h, float scale) {
+		super(context, x, y, w, h, scale);
 	}
 
 	@Override

@@ -28,12 +28,12 @@ public class SatellitesLocked extends HUDElement {
 		super(context);
 	}
 
-	public SatellitesLocked(Context context, int x, int y) {
-		super(context, x, y);
+	public SatellitesLocked(Context context, int x, int y, int w, int h) {
+		super(context, x, y, w, h);
 	}
 
-	public SatellitesLocked(Context context, int x, int y, float scale) {
-		super(context, x, y, scale);
+	public SatellitesLocked(Context context, int x, int y, int w, int h, float scale) {
+		super(context, x, y, w, h, scale);
 	}
 
 	@Override

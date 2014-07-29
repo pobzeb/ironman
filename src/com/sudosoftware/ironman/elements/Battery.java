@@ -14,8 +14,7 @@ import com.sudosoftware.ironman.util.ColorPicker;
 import com.sudosoftware.ironman.util.SensorManagerFactory;
 
 public class Battery extends HUDElement {
-	private static final float BATTERY_FULL_LENGTH = 225.0f;
-	private static final float CHARGING_ANIM_TIMER = BATTERY_FULL_LENGTH / 15.0f;
+	private static final float CHARGING_ANIM_TIMER = 50.0f;
 	private static final float CHARGING_STEP = 1.0f;
 
 	// Hold the battery percent.
@@ -33,12 +32,12 @@ public class Battery extends HUDElement {
 		super(context);
 	}
 
-	public Battery(Context context, int x, int y) {
-		super(context, x, y);
+	public Battery(Context context, int x, int y, int w, int h) {
+		super(context, x, y, w, h);
 	}
 
-	public Battery(Context context, int x, int y, float scale) {
-		super(context, x, y, scale);
+	public Battery(Context context, int x, int y, int w, int h, float scale) {
+		super(context, x, y, w, h, scale);
 	}
 
 	@Override
@@ -66,7 +65,7 @@ public class Battery extends HUDElement {
 
 		// Check to see if the battery is charging.
 		if (SensorManagerFactory.getInstance().isBatteryCharging()) {
-			chrgIdx+=CHARGING_ANIM_TIMER;
+			chrgIdx += (w / CHARGING_ANIM_TIMER);
 			if (chrgIdx >= percent) {
 				chrgIdx = 0.0f;
 
@@ -95,7 +94,7 @@ public class Battery extends HUDElement {
 			batteryDisplay = "Battery: " + percentFormat.format(percent) + "%";
 		}
 		catch (Exception e) {}
-		glBatteryText.draw(batteryDisplay, 0.0f, -(glBatteryText.getCharHeight() / 2.0f));
+		glBatteryText.draw(batteryDisplay, 0.0f, 10);
 		glBatteryText.end();
 		gl.glDisable(GL10.GL_BLEND);
 		gl.glDisable(GL10.GL_TEXTURE_2D);
@@ -104,23 +103,23 @@ public class Battery extends HUDElement {
 		gl.glLineWidth(10.0f);
 		ColorPicker.setGLColor(gl, ColorPicker.GRAY35, 0.25f);
 		BezierCurve.draw2PointCurve(gl,
-			new Point3D(0.0f, -(glBatteryText.getCharHeight() + 5.0f), 0.0f),
-			new Point3D(BATTERY_FULL_LENGTH, -(glBatteryText.getCharHeight() + 5.0f), 0.0f), GL10.GL_LINE_STRIP);
+			new Point3D(0.0f, 0.0f, 0.0f),
+			new Point3D(w, 0.0f, 0.0f), GL10.GL_LINE_STRIP);
 		if (SensorManagerFactory.getInstance().isBatteryCharging()) {
 			ColorPicker.setGLColor(gl, ColorPicker.FORESTGREEN, 0.75f);
 			BezierCurve.draw2PointCurve(gl,
-				new Point3D(0.0f, -(glBatteryText.getCharHeight() + 5.0f), 0.0f),
-				new Point3D((BATTERY_FULL_LENGTH * percent) / 100.0f, -(glBatteryText.getCharHeight() + 5.0f), 0.0f), GL10.GL_LINE_STRIP);
+				new Point3D(0.0f, 0.0f, 0.0f),
+				new Point3D((w * percent) / 100.0f, 0.0f, 0.0f), GL10.GL_LINE_STRIP);
 			ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
 			BezierCurve.draw2PointCurve(gl,
-				new Point3D(0.0f, -(glBatteryText.getCharHeight() + 5.0f), 0.0f),
-				new Point3D((BATTERY_FULL_LENGTH * percentIndicator) / 100.0f, -(glBatteryText.getCharHeight() + 5.0f), 0.0f), GL10.GL_LINE_STRIP);
+				new Point3D(0.0f, 0.0f, 0.0f),
+				new Point3D((w * percentIndicator) / 100.0f, 0.0f, 0.0f), GL10.GL_LINE_STRIP);
 		}
 		else {
 			ColorPicker.setGLColor(gl, ColorPicker.NEONBLUE, 0.75f);
 			BezierCurve.draw2PointCurve(gl,
-				new Point3D(0.0f, -(glBatteryText.getCharHeight() + 5.0f), 0.0f),
-				new Point3D((BATTERY_FULL_LENGTH * percent) / 100.0f, -(glBatteryText.getCharHeight() + 5.0f), 0.0f), GL10.GL_LINE_STRIP);
+				new Point3D(0.0f, 0.0f, 0.0f),
+				new Point3D((w * percent) / 100.0f, 0.0f, 0.0f), GL10.GL_LINE_STRIP);
 		}
 		gl.glLineWidth(1.0f);
 	}

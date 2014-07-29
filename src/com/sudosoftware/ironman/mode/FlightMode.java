@@ -17,12 +17,12 @@ public class FlightMode extends HUDMode {
 	@Override
 	public void init(Context context, int screenWidth, int screenHeight, float scale) {
 		super.init(context, screenWidth, screenHeight, scale);
-		this.hudElements.add(new Clock(this.context, this.screenWidth - (int)(220 * scale), this.screenHeight - (int)(220 * scale), scale));
-		this.hudElements.add(new Speedometer(this.context, this.screenWidth / 2, this.screenHeight / 2, scale));
-		this.hudElements.add(new Altimeter(this.context, this.screenWidth / 2, this.screenHeight / 2, scale));
-		this.hudElements.add(new Compass(this.context, this.screenWidth / 2, this.screenHeight / 2, scale));
-		this.hudElements.add(new Horizon(this.context, this.screenWidth / 2, this.screenHeight / 2, scale));
-		this.hudElements.add(new Location(this.context, this.screenWidth / 2, (int)(80 * scale), scale));
-		this.hudElements.add(new Battery(this.context, (int)(30 * scale), (int)(this.screenHeight - (80 * scale)), scale));
+		this.hudElements.add(new Clock(this.context, this.screenWidth - (int)(220 * scale), this.screenHeight - (int)(280 * scale), (int)(220 * scale), (int)(220 * scale), scale));
+		this.hudElements.add(new Speedometer(this.context, 10, (this.screenHeight / 2) - (int)(40 * scale), (int)(300 * scale), (int)(80 * scale), scale));
+		this.hudElements.add(new Altimeter(this.context, this.screenWidth - (int)(310 * scale), (this.screenHeight / 2) - (int)(40 * scale), (int)(300 * scale), (int)(80 * scale), scale));
+		this.hudElements.add(new Compass(this.context, (int)(50 * scale), (int)(this.screenHeight - (int)(80 * scale)), this.screenWidth - (int)(100 * scale), (int)(80 * scale), scale));
+		this.hudElements.add(new Horizon(this.context, (this.screenWidth / 2), (this.screenHeight / 2), (int)(280 * scale), (int)(280 * scale), scale));
+		this.hudElements.add(new Location(this.context, 0, 0, this.screenWidth, (int)(150 * scale), scale));
+		this.hudElements.add(new Battery(this.context, (int)(150 * scale), (int)(this.screenHeight - (160 * scale)), (int)(250 * scale), (int)(60 * scale), scale));
 	}
 }

@@ -10,6 +10,6 @@ public class OptionsMode extends HUDMode {
 	@Override
 	public void init(Context context, int screenWidth, int screenHeight, float scale) {
 		super.init(context, screenWidth, screenHeight, scale);
-		this.hudElements.add(new Options(this.context, 0, this.screenHeight, this.scale));
+		this.hudElements.add(new Options(this.context, 0, this.screenHeight,this.screenWidth, this.screenHeight, this.scale));
 	}
 }

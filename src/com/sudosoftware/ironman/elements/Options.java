@@ -27,12 +27,12 @@ public class Options extends HUDElement {
 		super(context);
 	}
 
-	public Options(Context context, int x, int y, float scale) {
-		super(context, x, y, scale);
+	public Options(Context context, int x, int y, int w, int h) {
+		super(context, x, y, w, h);
 	}
 
-	public Options(Context context, int x, int y) {
-		super(context, x, y);
+	public Options(Context context, int x, int y, int w, int h, float scale) {
+		super(context, x, y, w, h, scale);
 	}
 
 	@Override

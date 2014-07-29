@@ -18,12 +18,12 @@ public class Horizon extends HUDElement {
 		super(context);
 	}
 
-	public Horizon(Context context, int x, int y) {
-		super(context, x, y);
+	public Horizon(Context context, int x, int y, int w, int h) {
+		super(context, x, y, w, h);
 	}
 
-	public Horizon(Context context, int x, int y, float scale) {
-		super(context, x, y, scale);
+	public Horizon(Context context, int x, int y, int w, int h, float scale) {
+		super(context, x, y, w, h, scale);
 	}
 
 	@Override
